@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NVR Monitor — HIC</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- SweetAlert2: alertas visuales de caídas y recuperaciones -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Lucide Icons: librería de iconos SVG modernos -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <!-- ── HEADER ──────────────────────────────────────────────────── -->
+  <header>
+    <div class="header-left">
+      <span class="header-dot" id="header-dot"></span>
+      <div>
+        <h1><i data-lucide="monitor" class="icon-title"></i> NVR Monitor</h1>
+        <p>Sistema de Monitoreo en Tiempo Real — HIC</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="ultima-actualizacion">Conectando...</span>
+      <button id="btn-actualizar" onclick="fetchStatus()">
+        <i data-lucide="refresh-cw" class="icon-btn"></i> Actualizar
+      </button>
+    </div>
+  </header>
+
+  <!-- ── TARJETAS DE ESTADÍSTICAS ────────────────────────────────── -->
+  <section class="stats-grid">
+    <div class="stat-card verde">
+      <i data-lucide="wifi" class="icon-stat"></i>
+      <div class="stat-num" id="stat-activos">—</div>
+      <div class="stat-label">NVRs Respondiendo</div>
+    </div>
+    <div class="stat-card rojo">
+      <i data-lucide="wifi-off" class="icon-stat"></i>
+      <div class="stat-num" id="stat-nvr-caidos">—</div>
+      <div class="stat-label">NVRs Caídos</div>
+    </div>
+    <div class="stat-card morado">
+      <i data-lucide="video-off" class="icon-stat"></i>
+      <div class="stat-num" id="stat-cam-caidas">—</div>
+      <div class="stat-label">Cámaras Caídas</div>
+    </div>
+    <div class="stat-card azul">
+      <i data-lucide="server" class="icon-stat"></i>
+      <div class="stat-num" id="stat-total">—</div>
+      <div class="stat-label">Dispositivos Registrados</div>
+    </div>
+  </section>
+
+  <!-- ── SECCIONES DE NVRs ────────────────────────────────────────── -->
+  <main>
+
+    <section class="nvr-section">
+      <div class="section-header">
+        <h2><i data-lucide="shield" class="icon-section"></i> Seguridad Física</h2>
+        <span class="section-count" id="count-fisica">—</span>
+      </div>
+      <div class="nvr-grid" id="grid-fisica"></div>
+    </section>
+
+    <section class="nvr-section">
+      <div class="section-header">
+        <h2><i data-lucide="heart" class="icon-section"></i> Seguridad Paciente</h2>
+        <span class="section-count" id="count-paciente">—</span>
+      </div>
+      <div class="nvr-grid" id="grid-paciente"></div>
+    </section>
+
+    <section class="nvr-section">
+      <div class="section-header">
+        <h2><i data-lucide="activity" class="icon-section"></i> CX</h2>
+        <span class="section-count" id="count-cx">—</span>
+      </div>
+      <div class="nvr-grid" id="grid-cx"></div>
+    </section>
+
+    <section class="nvr-section">
+      <div class="section-header">
+        <h2><i data-lucide="building-2" class="icon-section"></i> UCIS</h2>
+        <span class="section-count" id="count-ucis">—</span>
+      </div>
+      <div class="nvr-grid" id="grid-ucis"></div>
+    </section>
+
+  </main>
+
+  <!-- ── HISTORIAL DE EVENTOS ─────────────────────────────────────── -->
+  <section class="historial-section">
+    <div class="section-header">
+      <h2><i data-lucide="clock" class="icon-section"></i> Historial de Eventos</h2>
+      <span class="section-count" id="count-historial">—</span>
+    </div>
+    <!-- ── BARRA DE FILTROS ──────────────────────────────────────────── -->
+<div class="filtros-bar">
+  <input
+    type="text"
+    id="filtro-ip"
+    class="filtro-input"
+    placeholder="Buscar por IP o nombre del dispositivo..."
+    oninput="filtrarHistorial()">
+  <select id="filtro-estado" class="filtro-select" onchange="filtrarHistorial()">
+    <option value="">Todos</option>
+    <option value="caida">Caída</option>
+    <option value="recuperacion">Recuperado</option>
+  </select>
+  <select id="filtro-tipo" class="filtro-select" onchange="filtrarHistorial()">
+    <option value="">Todos</option>
+    <option value="nvr">NVR</option>
+    <option value="camara">Cámara</option>
+  </select>
+  <button class="btn-limpiar" onclick="limpiarFiltros()">
+    <i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"></i>
+    Limpiar
+  </button>
+</div>
+    <table class="historial-tabla">
+      <thead>
+        <tr>
+          <th>Fecha / Hora</th>
+          <th>Dispositivo</th>
+          <th>IP</th>
+          <th>NVR</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="historial-body">
+        <tr><td colspan="6" class="empty-msg">Cargando historial...</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

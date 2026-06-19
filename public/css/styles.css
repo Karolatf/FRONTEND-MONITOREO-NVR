@@ -1,0 +1,261 @@
+/* ── Reset y variables globales ────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0d0d0d;
+  --surface:   #1a1a1a;
+  --surface2:  #222222;
+  --border:    #2e2e2e;
+  --amber:     #d4a017;
+  --amber-dim: #9a7010;
+  --green:     #22c55e;
+  --green-dim: #15803d;
+  --red:       #ef4444;
+  --red-dim:   #991b1b;
+  --orange:    #f97316;
+  --purple:    #a855f7;
+  --blue:      #3b82f6;
+  --text:      #e5e7eb;
+  --text-dim:  #9ca3af;
+  --radius:    8px;
+}
+
+body {
+  background:  var(--bg);
+  color:       var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size:   14px;
+}
+
+/* ── Iconos Lucide ──────────────────────────────────────────────────── */
+.icon-title   { width: 20px; height: 20px; vertical-align: middle; margin-right: 4px; color: var(--amber); }
+.icon-btn     { width: 13px; height: 13px; vertical-align: middle; margin-right: 3px; }
+.icon-stat    { width: 22px; height: 22px; margin-bottom: 0.4rem; opacity: 0.7; }
+.icon-section { width: 15px; height: 15px; vertical-align: middle; margin-right: 5px; }
+
+.stat-card.verde  .icon-stat { color: var(--green);  }
+.stat-card.rojo   .icon-stat { color: var(--red);    }
+.stat-card.morado .icon-stat { color: var(--purple); }
+.stat-card.azul   .icon-stat { color: var(--blue);   }
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+header {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  padding:         0.75rem 1.5rem;
+  background:      var(--surface);
+  border-bottom:   1px solid var(--border);
+  position:        sticky;
+  top:             0;
+  z-index:         100;
+}
+
+.header-left  { display: flex; align-items: center; gap: 0.75rem; }
+.header-dot   {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 8px var(--green);
+  flex-shrink: 0; animation: pulso 2s infinite;
+}
+
+@keyframes pulso { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+header h1 { font-size: 1.1rem; color: var(--amber); font-weight: 700; display: flex; align-items: center; }
+header p  { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+
+.header-right { display: flex; align-items: center; gap: 1rem; font-size: 0.72rem; color: var(--text-dim); }
+
+#btn-actualizar {
+  display: flex; align-items: center;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-dim); padding: 0.3rem 0.75rem;
+  border-radius: var(--radius); cursor: pointer;
+  font-size: 0.72rem; transition: all 0.2s;
+}
+#btn-actualizar:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ── Tarjetas de estadísticas ───────────────────────────────────────── */
+.stats-grid {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   1rem;
+  padding:               1rem 1.5rem;
+}
+
+.stat-card {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       1rem 1.25rem;
+  text-align:    center;
+}
+
+.stat-num   { font-size: 2rem; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 0.68rem; color: var(--text-dim); margin-top: 0.35rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.stat-card.verde  .stat-num { color: var(--green);  }
+.stat-card.rojo   .stat-num { color: var(--red);    }
+.stat-card.morado .stat-num { color: var(--purple); }
+.stat-card.azul   .stat-num { color: var(--blue);   }
+
+/* ── Layout principal 2x2 para TV ──────────────────────────────────── */
+main {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;  /* 2 columnas iguales */
+  grid-template-rows:    1fr 1fr;  /* 2 filas iguales */
+  gap:                   1rem;
+  padding:               0 1.5rem 1rem;
+}
+
+/* ── Secciones NVR ──────────────────────────────────────────────────── */
+.nvr-section {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       1rem;
+  margin-bottom: 0;
+  min-width:     0;
+  overflow:      hidden;
+}
+
+.section-header {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  margin-bottom:   0.75rem;
+}
+
+.section-header h2 {
+  font-size: 0.82rem; color: var(--amber);
+  letter-spacing: 0.05em; font-weight: 600;
+  display: flex; align-items: center;
+}
+
+.section-count {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 9999px; padding: 0.15rem 0.65rem;
+  font-size: 0.68rem; color: var(--text-dim);
+}
+
+/* ── Grilla de tarjetas NVR ─────────────────────────────────────────── */
+.nvr-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap:                   0.5rem;
+}
+
+.nvr-card {
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       0.65rem;
+  cursor:        pointer;
+  transition:    border-color 0.2s, background 0.2s;
+  position:      relative;
+  user-select:   none;
+}
+
+.nvr-card:hover       { border-color: var(--amber-dim); background: #282828; }
+.nvr-card.caido       { border-color: var(--red-dim); background: #1e0e0e; }
+.nvr-card.caido:hover { border-color: var(--red); }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; margin-bottom: 0.4rem; }
+.dot.verde { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot.rojo  { background: var(--red); box-shadow: 0 0 6px var(--red); animation: parpadeo 1.2s infinite; }
+
+@keyframes parpadeo { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+.nvr-nombre   { font-size: 0.72rem; font-weight: 600; color: var(--amber); line-height: 1.2; }
+.nvr-ip       { font-size: 0.6rem; color: var(--text-dim); margin-top: 0.15rem; font-family: monospace; }
+.caidas-badge {
+  position: absolute; top: 0.35rem; right: 0.35rem;
+  background: var(--red-dim); color: #fff;
+  border-radius: 9999px; font-size: 0.55rem;
+  padding: 0.1rem 0.35rem; font-weight: 700;
+}
+
+/* ── Historial de eventos ───────────────────────────────────────────── */
+.historial-section {
+  margin:        0 1.5rem 2rem;
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       1rem;
+  overflow-x:    auto;
+}
+
+.historial-tabla { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-top: 0.5rem; min-width: 600px; }
+.historial-tabla th { text-align: left; padding: 0.5rem 0.75rem; color: var(--text-dim); border-bottom: 1px solid var(--border); font-weight: 500; font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.historial-tabla td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #1d1d1d; color: var(--text); }
+.historial-tabla tr:last-child td { border-bottom: none; }
+.historial-tabla tr.fila-caida        td { background: rgba(239,68,68,0.06);  }
+.historial-tabla tr.fila-recuperacion td { background: rgba(34,197,94,0.06); }
+
+/* ── Badges ─────────────────────────────────────────────────────────── */
+.badge              { border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.63rem; font-weight: 700; }
+.badge-caida        { background: rgba(239,68,68,0.2);   color: var(--red);    border: 1px solid var(--red-dim);   }
+.badge-recuperacion { background: rgba(34,197,94,0.2);   color: var(--green);  border: 1px solid var(--green-dim); }
+.badge-nvr          { background: rgba(59,130,246,0.15); color: var(--blue);   border: 1px solid #1d4ed8; }
+.badge-camara       { background: rgba(249,115,22,0.15); color: var(--orange); border: 1px solid #c2410c; }
+
+/* ── Filtros del historial ──────────────────────────────────────────── */
+.filtros-bar {
+  display:       flex;
+  gap:           0.6rem;
+  align-items:   center;
+  margin-bottom: 0.75rem;
+  flex-wrap:     wrap;
+}
+
+.filtro-input {
+  flex:          1;
+  min-width:     180px;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: 9999px;
+  padding:       0.42rem 1rem;
+  color:         var(--text);
+  font-size:     0.78rem;
+  outline:       none;
+  transition:    border-color 0.2s;
+}
+.filtro-input::placeholder { color: var(--text-dim); }
+.filtro-input:focus        { border-color: var(--amber-dim); }
+
+.filtro-select {
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       0.42rem 0.75rem;
+  color:         var(--text);
+  font-size:     0.75rem;
+  outline:       none;
+  cursor:        pointer;
+  transition:    border-color 0.2s;
+}
+.filtro-select:focus { border-color: var(--amber-dim); }
+
+.btn-limpiar {
+  display:     flex;
+  align-items: center;
+  background:  transparent;
+  border:      1px solid var(--border);
+  color:       var(--text-dim);
+  padding:     0.42rem 0.75rem;
+  border-radius: var(--radius);
+  cursor:      pointer;
+  font-size:   0.72rem;
+  white-space: nowrap;
+  transition:  all 0.2s;
+}
+.btn-limpiar:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ── Mensajes vacíos y de carga ─────────────────────────────────────── */
+.empty-msg { text-align: center; color: var(--text-dim); padding: 2.5rem !important; font-size: 0.8rem; }
+.init-msg  { text-align: center; color: var(--text-dim); padding: 2rem; font-size: 0.8rem; }
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  main        { grid-template-columns: 1fr; grid-template-rows: auto; } /* En móvil vuelve a columna única */
+}
