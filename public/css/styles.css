@@ -454,7 +454,98 @@ span.flatpickr-weekday {
 .init-msg  { text-align: center; color: var(--text-dim); padding: 2rem; font-size: 0.8rem; }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
+
+/* TV / pantallas grandes (≥1600px): se ve a distancia, todo un poco más grande */
+@media (min-width: 1600px) {
+  body { font-size: 16px; }
+  header { padding: 1rem 2rem; }
+  header h1 { font-size: 1.4rem; }
+  header p  { font-size: 0.85rem; }
+  .header-right { font-size: 0.85rem; gap: 1.25rem; }
+
+  .stats-grid { padding: 1.5rem 2rem; gap: 1.5rem; }
+  .stat-num   { font-size: 2.6rem; }
+  .stat-label { font-size: 0.8rem; }
+
+  main { padding: 0 2rem 1.5rem; gap: 1.5rem; }
+  .nvr-section { padding: 1.5rem; }
+  .section-header h2 { font-size: 1rem; }
+  .section-count { font-size: 0.8rem; }
+  .nvr-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; }
+  .nvr-nombre { font-size: 0.85rem; }
+  .nvr-ip     { font-size: 0.72rem; }
+
+  .historial-section { margin: 0 2rem 2rem; padding: 1.5rem; }
+  .historial-tabla { font-size: 0.9rem; }
+}
+
+/* Laptops pequeños y tablets en horizontal: el layout 2x2 de "main" ya no cabe cómodo, se apila */
+@media (max-width: 1100px) {
+  main { grid-template-columns: 1fr; grid-template-rows: auto; }
+}
+
+/* Tablets en vertical */
 @media (max-width: 900px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  main        { grid-template-columns: 1fr; grid-template-rows: auto; }
+}
+
+/* Móviles (celulares en vertical y horizontal) */
+@media (max-width: 768px) {
+  header {
+    flex-wrap: wrap;
+    row-gap:   0.6rem;
+    padding:   0.75rem 1rem;
+  }
+  .header-right { width: 100%; justify-content: space-between; }
+
+  .stats-grid { padding: 0.75rem 1rem; gap: 0.6rem; }
+  .stat-card  { padding: 0.75rem 0.5rem; }
+  .stat-num   { font-size: 1.5rem; }
+  .stat-label { font-size: 0.6rem; }
+  .icon-stat  { width: 18px; height: 18px; }
+
+  main         { padding: 0 1rem 1rem; gap: 0.75rem; }
+  .nvr-section { padding: 0.75rem; }
+  .nvr-grid    { grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 0.4rem; }
+
+  .historial-section { margin: 0 1rem 1.5rem; padding: 0.75rem; }
+
+  .filtros-bar {
+    flex-direction: column;
+    align-items:    stretch;
+  }
+  .filtro-input, .filtro-rango, .filtro-select, .filtro-item-grupo {
+    width:     100%;
+    min-width: 0;
+  }
+  .btn-limpiar { justify-content: center; }
+
+  .tabla-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* Móviles pequeños (≤480px) */
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  header h1 { font-size: 0.95rem; }
+  header p  { font-size: 0.65rem; }
+  #btn-actualizar { padding: 0.3rem 0.6rem; font-size: 0.68rem; }
+
+  /* Calendario flatpickr adaptado a pantallas angostas */
+  .flatpickr-calendar {
+    width:   280px !important;
+    padding: 10px !important;
+  }
+  .flatpickr-days, .dayContainer {
+    width:     252px !important;
+    min-width: 252px !important;
+    max-width: 252px !important;
+  }
+  span.flatpickr-weekday { width: 36px !important; }
+  .flatpickr-day {
+    width:       36px !important;
+    max-width:   36px !important;
+    height:      32px !important;
+    line-height: 32px !important;
+    font-size:   0.75rem !important;
+  }
 }
