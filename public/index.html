@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NVR Monitor — HIC</title>
   <link rel="stylesheet" href="css/styles.css">
-  <!-- SweetAlert2: alertas visuales de caídas y recuperaciones -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- Lucide Icons: librería de iconos SVG modernos -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 
-  <!-- ── HEADER ──────────────────────────────────────────────────── -->
   <header>
     <div class="header-left">
       <span class="header-dot" id="header-dot"></span>
@@ -29,7 +27,6 @@
     </div>
   </header>
 
-  <!-- ── TARJETAS DE ESTADÍSTICAS ────────────────────────────────── -->
   <section class="stats-grid">
     <div class="stat-card verde">
       <i data-lucide="wifi" class="icon-stat"></i>
@@ -53,9 +50,7 @@
     </div>
   </section>
 
-  <!-- ── SECCIONES DE NVRs ────────────────────────────────────────── -->
   <main>
-
     <section class="nvr-section">
       <div class="section-header">
         <h2><i data-lucide="shield" class="icon-section"></i> Seguridad Física</h2>
@@ -87,38 +82,61 @@
       </div>
       <div class="nvr-grid" id="grid-ucis"></div>
     </section>
-
   </main>
 
-  <!-- ── HISTORIAL DE EVENTOS ─────────────────────────────────────── -->
   <section class="historial-section">
     <div class="section-header">
       <h2><i data-lucide="clock" class="icon-section"></i> Historial de Eventos</h2>
       <span class="section-count" id="count-historial">—</span>
     </div>
-    <!-- ── BARRA DE FILTROS ──────────────────────────────────────────── -->
-<div class="filtros-bar">
-  <input
-    type="text"
-    id="filtro-ip"
-    class="filtro-input"
-    placeholder="Buscar por IP o nombre del dispositivo..."
-    oninput="filtrarHistorial()">
-  <select id="filtro-estado" class="filtro-select" onchange="filtrarHistorial()">
-    <option value="">Todos</option>
-    <option value="caida">Caída</option>
-    <option value="recuperacion">Recuperado</option>
-  </select>
-  <select id="filtro-tipo" class="filtro-select" onchange="filtrarHistorial()">
-    <option value="">Todos</option>
-    <option value="nvr">NVR</option>
-    <option value="camara">Cámara</option>
-  </select>
-  <button class="btn-limpiar" onclick="limpiarFiltros()">
-    <i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"></i>
-    Limpiar
-  </button>
-</div>
+
+    <div class="filtros-bar">
+
+      <input
+        type="text"
+        id="filtro-ip"
+        class="filtro-input"
+        placeholder="Buscar por IP o nombre..."
+        oninput="cargarHistorial()">
+
+      <div class="filtro-item-grupo">
+        <label class="filtro-label">Fechas</label>
+        <input type="text" id="filtro-rango" class="filtro-rango"
+          placeholder="Seleccionar rango..." readonly>
+      </div>
+
+      <div class="filtro-item-grupo">
+        <label class="filtro-label">Hora</label>
+        <select id="filtro-hora" class="filtro-select" onchange="cargarHistorial()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+
+      <div class="filtro-item-grupo">
+        <label class="filtro-label">Estado</label>
+        <select id="filtro-estado" class="filtro-select" onchange="cargarHistorial()">
+          <option value="">Todos</option>
+          <option value="caida">Caída</option>
+          <option value="recuperacion">Recuperado</option>
+        </select>
+      </div>
+
+      <div class="filtro-item-grupo">
+        <label class="filtro-label">Tipo</label>
+        <select id="filtro-tipo" class="filtro-select" onchange="cargarHistorial()">
+          <option value="">Todos</option>
+          <option value="nvr">NVR</option>
+          <option value="camara">Cámara</option>
+        </select>
+      </div>
+
+      <button class="btn-limpiar" onclick="limpiarFiltros()">
+        <i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"></i>
+        Limpiar
+      </button>
+
+    </div>
+
     <table class="historial-tabla">
       <thead>
         <tr>
@@ -136,6 +154,8 @@
     </table>
   </section>
 
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
