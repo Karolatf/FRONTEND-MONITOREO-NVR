@@ -84,6 +84,30 @@ header p  { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
 }
 #btn-actualizar:hover { border-color: var(--amber); color: var(--amber); }
 
+.usuario-badge {
+  display:        flex;
+  align-items:    center;
+  gap:            0.4rem;
+  padding-left:   0.75rem;
+  border-left:    1px solid var(--border);
+  color:          var(--text-dim);
+  font-size:      0.72rem;
+  white-space:    nowrap;
+}
+
+#btn-logout {
+  display:       flex;
+  align-items:   center;
+  background:    transparent;
+  border:        1px solid var(--border);
+  color:         var(--text-dim);
+  padding:       0.3rem 0.55rem;
+  border-radius: var(--radius);
+  cursor:        pointer;
+  transition:    all 0.2s;
+}
+#btn-logout:hover { border-color: var(--red); color: var(--red); }
+
 /* ── Stats ───────────────────────────────────────────────────────── */
 .stats-grid {
   display:               grid;
@@ -496,7 +520,14 @@ span.flatpickr-weekday {
     row-gap:   0.6rem;
     padding:   0.75rem 1rem;
   }
-  .header-right { width: 100%; justify-content: space-between; }
+  .header-right {
+    width:           100%;
+    justify-content: space-between;
+    flex-wrap:       wrap;
+    row-gap:         0.5rem;
+  }
+  .usuario-badge { border-left: none; padding-left: 0; order: 3; }
+  #btn-logout    { order: 4; }
 
   .stats-grid { padding: 0.75rem 1rem; gap: 0.6rem; }
   .stat-card  { padding: 0.75rem 0.5rem; }
@@ -548,4 +579,274 @@ span.flatpickr-weekday {
     line-height: 32px !important;
     font-size:   0.75rem !important;
   }
+}
+
+/* ── Pantalla de login ───────────────────────────────────────────────────── */
+.login-body {
+  min-height:      100vh;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         1.5rem;
+  background:      radial-gradient(circle at 50% 0%, #1a1a1a 0%, var(--bg) 60%);
+}
+
+.login-wrapper { width: 100%; max-width: 380px; }
+
+.login-card {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 14px;
+  padding:       2.25rem 2rem 1.75rem;
+  text-align:    center;
+  box-shadow:    0 20px 60px rgba(0,0,0,0.5);
+}
+
+.login-logo {
+  width:           56px;
+  height:          56px;
+  margin:          0 auto 1rem;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  border-radius:   50%;
+  background:      rgba(212,160,23,0.12);
+  border:          1px solid var(--amber-dim);
+}
+.login-logo-icon { width: 26px; height: 26px; color: var(--amber); }
+
+.login-card h1 { font-size: 1.25rem; color: var(--amber); font-weight: 700; margin-bottom: 0.3rem; }
+.login-subtitle {
+  font-size:     0.72rem;
+  color:         var(--text-dim);
+  margin-bottom: 1.75rem;
+  line-height:   1.5;
+}
+
+.login-field { text-align: left; margin-bottom: 1.1rem; }
+.login-field label {
+  display:        block;
+  font-size:      0.65rem;
+  color:          var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight:    600;
+  margin-bottom:  0.4rem;
+}
+.login-field input {
+  width:         100%;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       0.65rem 0.85rem;
+  color:         var(--text);
+  font-size:     0.85rem;
+  outline:       none;
+  transition:    border-color 0.2s;
+}
+.login-field input:focus       { border-color: var(--amber-dim); }
+.login-field input::placeholder { color: #5a5a5a; }
+
+.login-password-wrap { position: relative; }
+.login-password-wrap input { padding-right: 2.4rem; }
+.login-eye {
+  position:        absolute;
+  right:           0.5rem;
+  top:             50%;
+  transform:       translateY(-50%);
+  background:      transparent;
+  border:          none;
+  color:           var(--text-dim);
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  padding:         0.25rem;
+}
+.login-eye:hover { color: var(--amber); }
+
+.login-error {
+  background:    rgba(239,68,68,0.1);
+  border:        1px solid var(--red-dim);
+  color:         var(--red);
+  font-size:     0.72rem;
+  border-radius: var(--radius);
+  padding:       0.6rem 0.75rem;
+  margin-bottom: 1rem;
+  text-align:    left;
+  line-height:   1.4;
+}
+
+.login-submit {
+  width:         100%;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  gap:           0.35rem;
+  background:    var(--amber);
+  border:        none;
+  color:         #1a1300;
+  font-weight:   700;
+  font-size:     0.85rem;
+  padding:       0.75rem;
+  border-radius: var(--radius);
+  cursor:        pointer;
+  transition:    background 0.2s, opacity 0.2s;
+}
+.login-submit:hover     { background: #e0aa1a; }
+.login-submit:disabled  { opacity: 0.65; cursor: default; }
+
+.login-footnote {
+  margin-top:  1.5rem;
+  font-size:   0.62rem;
+  color:       #5a5a5a;
+  line-height: 1.5;
+}
+
+.login-spin { animation: girar 0.8s linear infinite; }
+@keyframes girar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+@media (max-width: 420px) {
+  .login-card { padding: 1.75rem 1.25rem 1.5rem; }
+}
+
+/* ── Notificaciones toast (Notyf) — caídas y recuperaciones en tiempo real ── */
+.notyf__toast {
+  border-radius: var(--radius) !important;
+  box-shadow:    0 10px 30px rgba(0,0,0,0.5) !important;
+  font-family:   'Segoe UI', system-ui, -apple-system, sans-serif !important;
+  border:        1px solid var(--border) !important;
+  width:         280px !important;
+  max-width:     280px !important;
+  padding:       0 0.75rem !important;
+}
+
+.notyf__wrapper {
+  padding-top:    0.55rem !important;
+  padding-bottom: 0.55rem !important;
+  align-items:    flex-start !important;
+}
+
+.notyf__message {
+  color:      var(--text) !important;
+  font-size:  0.76rem !important;
+  min-width:  0; /* permite que el ellipsis funcione dentro del flex */
+  width:      100%;
+}
+
+/* Título y detalle con ancho fijo: si el nombre es largo se trunca con "...",
+   así todos los recuadros miden exactamente lo mismo sin importar el texto */
+.notyf__message b {
+  display:       block;
+  color:         var(--amber);
+  font-weight:   600;
+  font-size:     0.78rem;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.2rem;
+}
+.notyf__message small {
+  display:        block;
+  color:          var(--text-dim) !important;
+  font-size:      0.68rem !important;
+  font-family:    monospace;
+  white-space:    nowrap;
+  overflow:       hidden;
+  text-overflow:  ellipsis;
+}
+
+.notyf__icon {
+  width:        18px !important;
+  font-size:    0.95rem !important;
+  margin-right: 0.6rem !important;
+  margin-top:   0.1rem;
+}
+
+/* Contenido de cada toast: ícono Lucide + texto (reemplaza el .notyf__icon
+   nativo, que se desactivó con icon:false para poder usar SVGs reales) */
+.toast-contenido { display: flex; align-items: flex-start; gap: 0.6rem; }
+.toast-icono      { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0.15rem; }
+.toast-texto      { min-width: 0; flex: 1; }
+
+.toast-nvr-caida         .toast-icono { color: var(--red);    }
+.toast-nvr-recuperado    .toast-icono { color: var(--green);  }
+.toast-camara-caida      .toast-icono { color: var(--orange); }
+.toast-camara-recuperada .toast-icono { color: var(--green);  }
+
+.notyf__dismiss-btn { background-color: rgba(255,255,255,0.08) !important; }
+.notyf__dismiss-btn:hover { background-color: rgba(255,255,255,0.18) !important; }
+
+/* Franja de color a la izquierda según el tipo de evento */
+.toast-nvr-caida         { border-left: 3px solid var(--red)    !important; }
+.toast-nvr-recuperado    { border-left: 3px solid var(--green)  !important; }
+.toast-camara-caida      { border-left: 3px solid var(--orange) !important; }
+.toast-camara-recuperada { border-left: 3px solid var(--green)  !important; }
+
+/* Un poco más de aire respecto al borde de la pantalla, y espacio entre toasts */
+.notyf { padding: 1rem !important; }
+.notyf__toast--upper { margin-bottom: 0.5rem !important; }
+.notyf__toast--lower { margin-top: 0.5rem !important; }
+
+@media (max-width: 480px) {
+  .notyf__toast { width: calc(100vw - 2rem) !important; max-width: calc(100vw - 2rem) !important; }
+}
+
+/* ── Barra de incidente masivo ──────────────────────────────────────────── */
+/* Persistente (no se auto-cierra): aparece mientras el número de caídas
+   supere el umbral definido en app.js, y desaparece sola al normalizarse.
+   Pensada para notarse desde lejos en una TV, a diferencia de los toasts. */
+.incidente-banner {
+  display:       flex;
+  align-items:   center;
+  gap:           0.75rem;
+  margin:        0 1.5rem;
+  margin-top:    0.75rem;
+  padding:       0.65rem 1.1rem;
+  background:    rgba(239,68,68,0.12);
+  border:        1px solid var(--red-dim);
+  border-left:   4px solid var(--red);
+  border-radius: var(--radius);
+  animation:     aparecerBanner 0.25s ease-out;
+}
+
+/* CRÍTICO: sin esta regla, el "display: flex" de arriba le gana al atributo
+   hidden del navegador (misma especificidad, y esta hoja se carga después),
+   así que la barra se quedaba visible con el texto viejo aunque JS ya
+   hubiera puesto banner.hidden = true. Debe ir siempre después de la regla
+   de arriba para ganar en el orden de la cascada. */
+.incidente-banner[hidden] {
+  display: none !important;
+}
+
+@keyframes aparecerBanner {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.incidente-dot {
+  width:         9px;
+  height:        9px;
+  border-radius: 50%;
+  background:    var(--red);
+  box-shadow:    0 0 8px var(--red);
+  flex-shrink:   0;
+  animation:     parpadeo 1.2s infinite;
+}
+
+.incidente-icono { width: 18px; height: 18px; color: var(--red); flex-shrink: 0; }
+
+.incidente-texto { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.incidente-texto strong { color: var(--red); font-size: 0.85rem; }
+.incidente-texto span   { color: var(--text-dim); font-size: 0.75rem; }
+
+@media (min-width: 1600px) {
+  .incidente-banner { margin: 0 2rem; margin-top: 1rem; padding: 0.85rem 1.4rem; }
+  .incidente-texto strong { font-size: 1rem; }
+  .incidente-texto span   { font-size: 0.85rem; }
+}
+
+@media (max-width: 768px) {
+  .incidente-banner { margin: 0 1rem; margin-top: 0.6rem; flex-wrap: wrap; }
+  .incidente-texto strong { font-size: 0.8rem; }
+  .incidente-texto span   { font-size: 0.7rem; }
 }

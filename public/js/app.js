@@ -1,7 +1,6 @@
 // ── Estado global ────────────────────────────────────────────────────────────
 let estadoActual = {};
 let rangoPicker  = null;
-const INTERVALO_POLL = 15000;
 
 // ── Inicializar Flatpickr ────────────────────────────────────────────────────
 function inicializarRangoPicker() {
@@ -54,7 +53,7 @@ function generarOpcionesHora() {
 // ── Consultar estado de NVRs ─────────────────────────────────────────────────
 async function fetchStatus() {
   try {
-    const res  = await fetch('/api/status');
+    const res  = await authFetch('/api/status');
     const data = await res.json();
 
     if (data.inicializando) {
@@ -96,7 +95,7 @@ async function cargarHistorial() {
   if (hora !== '')     params.set('hora',            hora);
 
   try {
-    const res  = await fetch(`/api/historial?${params}`);
+    const res  = await authFetch(`/api/historial?${params}`);
     const data = await res.json();
 
     const hayFiltros = ip || tipo || tipoDispositivo || desde || hasta || hora !== '';
@@ -164,6 +163,37 @@ function renderEstado(data) {
   document.getElementById('stat-cam-caidas').textContent = totalCamCaidas;
   document.getElementById('stat-total').textContent      = totalDisp;
 
+  actualizarBannerIncidente(totalCaidos, totalCamCaidas);
+  lucide.createIcons();
+}
+
+// ── Barra de incidente masivo ──────────────────────────────────────────────────
+// A diferencia de los toasts (pensados para avisar de 1-2 caídas puntuales),
+// esta barra refleja el estado ACTUAL del monitoreo: aparece mientras la
+// cantidad de caídas supere el umbral, y desaparece sola cuando se normaliza.
+// Pensada para verse desde lejos en la TV, sin depender de alcanzar a leer
+// una notificación que ya se cerró.
+const UMBRAL_INCIDENTE = 15; // Total de NVRs + cámaras caídas para considerarlo un incidente masivo
+
+function actualizarBannerIncidente(nvrCaidos, camCaidas) {
+  const banner = document.getElementById('incidente-banner');
+  if (!banner) return;
+
+  const totalProblemas = nvrCaidos + camCaidas;
+
+  if (totalProblemas < UMBRAL_INCIDENTE) {
+    banner.hidden = true;
+    return;
+  }
+
+  banner.hidden = false;
+  banner.innerHTML = `
+    <span class="incidente-dot"></span>
+    <i data-lucide="alert-triangle" class="incidente-icono"></i>
+    <div class="incidente-texto">
+      <strong>Incidente de red en curso</strong>
+      <span>${nvrCaidos} NVR(s) y ${camCaidas} cámara(s) caídas — revisa las tarjetas abajo</span>
+    </div>`;
   lucide.createIcons();
 }
 
@@ -284,34 +314,141 @@ function abrirModalNVR(nvr) {
   });
 }
 
-// ── Alertas SweetAlert2 ───────────────────────────────────────────────────────
-async function mostrarAlertas(eventos) {
-  for (const ev of eventos) {
-    const esNVR   = ev.tipoDispositivo === 'nvr';
-    const esCaida = ev.tipo === 'caida';
-    if (esCaida) {
-      await Swal.fire({
-        icon: 'error',
-        title: esNVR ? 'NVR Caído' : 'Cámara Caída',
-        html: `<b>${ev.nombre}</b><br>
-               <small style="color:#9ca3af;font-family:monospace">${ev.ip}</small>
-               ${!esNVR && ev.nvrNombre ? `<br><small style="color:#9ca3af">NVR: ${ev.nvrNombre}</small>` : ''}`,
-        background: '#1a1a1a', color: '#e5e7eb',
-        confirmButtonColor: '#ef4444', confirmButtonText: 'Entendido',
-        timer: 6000, timerProgressBar: true
-      });
-    } else {
-      await Swal.fire({
-        icon: 'success',
-        title: esNVR ? 'NVR Recuperado' : 'Cámara Recuperada',
-        html: `<b>${ev.nombre}</b><br>
-               <small style="color:#9ca3af;font-family:monospace">${ev.ip}</small>`,
-        background: '#1a1a1a', color: '#e5e7eb',
-        confirmButtonColor: '#22c55e', confirmButtonText: 'OK',
-        timer: 4000, timerProgressBar: true
-      });
-    }
+// ── Notificaciones toast (caídas / recuperaciones) ────────────────────────────
+// Notyf en vez de SweetAlert2 para estos avisos: aparecen apiladas en una
+// esquina, no bloquean la pantalla esperando que el operador las cierre, y la
+// animación de entrada es casi instantánea. El modal de detalle del NVR sigue
+// usando SweetAlert2, porque ahí sí tiene sentido un diálogo que se detenga.
+//
+// El ícono usa Lucide (icon: false + <i data-lucide> dentro del mensaje),
+// los mismos íconos que ya aparecen en las tarjetas de estadísticas arriba,
+// para que se vea consistente con el resto del dashboard en vez de un emoji.
+const ICONOS_TOAST = {
+  nvrCaida:         'wifi-off',
+  nvrRecuperado:    'wifi',
+  camaraCaida:      'video-off',
+  camaraRecuperada: 'video'
+};
+
+const notyf = new Notyf({
+  ripple:      false,
+  dismissible: true,
+  position:    { x: 'right', y: 'top' },
+  types: [
+    { type: 'nvrCaida',         className: 'toast-nvr-caida',         background: 'var(--surface2)', duration: 7000, icon: false },
+    { type: 'nvrRecuperado',    className: 'toast-nvr-recuperado',    background: 'var(--surface2)', duration: 5000, icon: false },
+    { type: 'camaraCaida',      className: 'toast-camara-caida',      background: 'var(--surface2)', duration: 7000, icon: false },
+    { type: 'camaraRecuperada', className: 'toast-camara-recuperada', background: 'var(--surface2)', duration: 5000, icon: false }
+  ]
+});
+
+// Máximo de toasts visibles al mismo tiempo: si llegan más, se van descartando
+// los más viejos para dar espacio a los nuevos, en vez de inundar la pantalla.
+const MAX_TOASTS_VISIBLES = 4;
+let toastsActivos = [];
+
+function agregarToastActivo(toast) {
+  while (toastsActivos.length >= MAX_TOASTS_VISIBLES) {
+    notyf.dismiss(toastsActivos.shift());
   }
+  toastsActivos.push(toast);
+  toast.on('dismiss', () => {
+    toastsActivos = toastsActivos.filter(t => t !== toast);
+  });
+  lucide.createIcons(); // Convierte el <i data-lucide> recién insertado en SVG
+}
+
+// ── Buffer de eventos en tiempo real ──────────────────────────────────────────
+// El backend emite cada caída/recuperación como un mensaje de socket
+// individual. Si se caen 60 dispositivos en el mismo chequeo, llegarían 60
+// mensajes casi simultáneos. Se agrupan los que lleguen en una ventana corta
+// para que, igual que al recargar la página, se muestren como un resumen.
+const VENTANA_AGRUPACION_MS = 400;
+let bufferEventosSocket = [];
+let timerBufferEventos  = null;
+
+function encolarEvento(evento) {
+  bufferEventosSocket.push(evento);
+  if (timerBufferEventos) clearTimeout(timerBufferEventos);
+  timerBufferEventos = setTimeout(() => {
+    mostrarAlertas(bufferEventosSocket);
+    cargarHistorial();
+    bufferEventosSocket = [];
+  }, VENTANA_AGRUPACION_MS);
+}
+
+// ── Mostrar una tanda de eventos ───────────────────────────────────────────────
+// Si son pocos, uno por uno con un pequeño efecto cascada. Si llega una ráfaga
+// grande (una caída masiva de red, por ejemplo), se agrupan en un resumen para
+// no saturar la pantalla con decenas de recuadros.
+const LIMITE_ANTES_DE_RESUMIR = 5;
+
+function mostrarAlertas(eventos) {
+  if (eventos.length > LIMITE_ANTES_DE_RESUMIR) {
+    mostrarResumenAlertas(eventos);
+    return;
+  }
+  eventos.forEach((ev, i) => {
+    setTimeout(() => mostrarAlertaToast(ev), i * 150);
+  });
+}
+
+function mostrarAlertaToast(ev) {
+  const esNVR   = ev.tipoDispositivo === 'nvr';
+  const esCaida = ev.tipo === 'caida';
+
+  const tipo = esNVR
+    ? (esCaida ? 'nvrCaida'    : 'nvrRecuperado')
+    : (esCaida ? 'camaraCaida' : 'camaraRecuperada');
+
+  const titulo = esNVR
+    ? (esCaida ? 'NVR Caído'    : 'NVR Recuperado')
+    : (esCaida ? 'Cámara Caída' : 'Cámara Recuperada');
+
+  const detalleNVR = (!esNVR && ev.nvrNombre) ? ` · NVR: ${ev.nvrNombre}` : '';
+
+  const toast = notyf.open({
+    type:    tipo,
+    message: `
+      <div class="toast-contenido">
+        <i data-lucide="${ICONOS_TOAST[tipo]}" class="toast-icono"></i>
+        <div class="toast-texto">
+          <b title="${ev.nombre}">${titulo} — ${ev.nombre}</b>
+          <small title="${ev.ip}${detalleNVR}">${ev.ip}${detalleNVR}</small>
+        </div>
+      </div>`
+  });
+  agregarToastActivo(toast);
+}
+
+// ── Resumen agrupado para ráfagas grandes de eventos ──────────────────────────
+function mostrarResumenAlertas(eventos) {
+  const contar = (tipo, tipoDispositivo) =>
+    eventos.filter(e => e.tipo === tipo && e.tipoDispositivo === tipoDispositivo).length;
+
+  const grupos = [
+    { tipo: 'nvrCaida',         cantidad: contar('caida', 'nvr'),         texto: 'NVR(s) caídos' },
+    { tipo: 'camaraCaida',      cantidad: contar('caida', 'camara'),      texto: 'cámara(s) caídas' },
+    { tipo: 'nvrRecuperado',    cantidad: contar('recuperacion', 'nvr'),  texto: 'NVR(s) recuperados' },
+    { tipo: 'camaraRecuperada', cantidad: contar('recuperacion', 'camara'), texto: 'cámara(s) recuperadas' }
+  ];
+
+  grupos.filter(g => g.cantidad > 0).forEach((g, i) => {
+    setTimeout(() => {
+      const toast = notyf.open({
+        type:    g.tipo,
+        message: `
+          <div class="toast-contenido">
+            <i data-lucide="${ICONOS_TOAST[g.tipo]}" class="toast-icono"></i>
+            <div class="toast-texto">
+              <b>${g.cantidad} ${g.texto}</b>
+              <small>Revisa las tarjetas y el historial</small>
+            </div>
+          </div>`
+      });
+      agregarToastActivo(toast);
+    }, i * 150);
+  });
 }
 
 // ── Filas del historial ───────────────────────────────────────────────────────
@@ -349,10 +486,57 @@ function mostrarInicializando() {
 }
 
 // ── Arranque ──────────────────────────────────────────────────────────────────
+mostrarUsuarioActual();
 inicializarRangoPicker();
 generarOpcionesHora();
-fetchStatus();
+fetchStatus();      // Primer pintado, mientras se conecta el socket
 cargarHistorial();
+conectarSocket();
 
-setInterval(fetchStatus,     INTERVALO_POLL);
-setInterval(cargarHistorial, 60000);
+// ── Mostrar el usuario logueado en el header ──────────────────────────────────
+function mostrarUsuarioActual() {
+  const usuario = obtenerUsuario();
+  const el = document.getElementById('usuario-actual');
+  if (usuario && el) el.textContent = usuario.nombre || usuario.username;
+}
+
+// ── Tiempo real vía Socket.IO ──────────────────────────────────────────────────
+// Reemplaza el polling: el backend empuja el estado y los eventos apenas los
+// detecta, así que las tarjetas y el historial se actualizan solos, sin
+// esperar al siguiente sondeo ni tener que refrescar la página.
+function conectarSocket() {
+  const socket = io({ auth: { token: obtenerToken() } });
+
+  socket.on('connect', () => {
+    actualizarTimestamp();
+    // Por si se perdió algún evento mientras estuvo desconectado (ej. se cayó
+    // la red un momento): traer el estado y el historial reales de una vez,
+    // en vez de confiar solo en lo próximo que llegue por socket.
+    fetchStatus();
+    cargarHistorial();
+  });
+
+  // Estado completo de NVRs/cámaras: llega al conectar y cada vez que cambia algo
+  socket.on('estado', data => {
+    renderEstado(data);
+    actualizarTimestamp();
+  });
+
+  // Una caída o recuperación puntual: se agrupan por si llegan varias casi
+  // al mismo tiempo (ver encolarEvento), y se refresca el historial.
+  socket.on('evento', evento => {
+    encolarEvento(evento);
+  });
+
+  socket.on('disconnect', () => {
+    actualizarTimestamp('Sin conexión con el servidor — reconectando...');
+  });
+
+  socket.on('connect_error', err => {
+    console.error('Error de conexión en tiempo real:', err.message);
+    // Si el servidor rechaza el token (sesión expirada/reiniciada), cerrar sesión
+    if (err.message === 'No autenticado' || err.message.includes('inválida')) {
+      cerrarSesion();
+    }
+  });
+}
