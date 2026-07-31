@@ -76,7 +76,55 @@ async function fetchStatus() {
 }
 
 // ── Cargar historial con filtros ──────────────────────────────────────────────
-async function cargarHistorial() {
+// ── Exportar el historial filtrado (Excel o PDF) ──────────────────────────────
+async function exportarHistorial(formato) {
+  const params = construirParametrosFiltro();
+  params.set('formato', formato);
+
+  const btn = document.getElementById('btn-exportar');
+  const textoOriginal = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader" class="icon-btn login-spin"></i> Generando...';
+  lucide.createIcons();
+
+  try {
+    const res = await authFetch(`/api/historial/exportar?${params}`);
+    if (!res.ok) throw new Error('No se pudo generar el archivo.');
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    const fecha = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `historial-nvr-${fecha}.${formato === 'excel' ? 'xlsx' : 'pdf'}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Error al exportar:', err);
+    notyf.error('No se pudo generar el archivo de exportación.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = textoOriginal;
+    lucide.createIcons();
+    cerrarMenuExportar();
+  }
+}
+
+function toggleMenuExportar() {
+  document.getElementById('menu-exportar').classList.toggle('abierto');
+}
+function cerrarMenuExportar() {
+  document.getElementById('menu-exportar').classList.remove('abierto');
+}
+document.addEventListener('click', e => {
+  const wrapper = document.getElementById('exportar-wrapper');
+  if (wrapper && !wrapper.contains(e.target)) cerrarMenuExportar();
+});
+
+// ── Construir los parámetros de filtro actuales (reutilizado por historial y exportar) ─
+function construirParametrosFiltro() {
   const ip              = document.getElementById('filtro-ip').value.trim();
   const tipo            = document.getElementById('filtro-estado').value;
   const tipoDispositivo = document.getElementById('filtro-tipo').value;
@@ -94,11 +142,17 @@ async function cargarHistorial() {
   if (hasta)           params.set('hasta',           hasta);
   if (hora !== '')     params.set('hora',            hora);
 
+  return params;
+}
+
+async function cargarHistorial() {
+  const params = construirParametrosFiltro();
+
   try {
     const res  = await authFetch(`/api/historial?${params}`);
     const data = await res.json();
 
-    const hayFiltros = ip || tipo || tipoDispositivo || desde || hasta || hora !== '';
+    const hayFiltros = [...params.keys()].length > 0;
     const countEl    = document.getElementById('count-historial');
     countEl.textContent = hayFiltros
       ? `${data.total} resultado${data.total !== 1 ? 's' : ''}`
@@ -203,11 +257,13 @@ function renderGrid(seccionId, lista) {
   if (!grid) return;
   grid.innerHTML = lista.map(nvr => {
     const camarasCaidas = nvr.camaras ? nvr.camaras.filter(c => !c.activo).length : 0;
+    const colorDot = { normal: 'verde', degradado: 'amarillo', caido: 'rojo' }[nvr.estadoVisual] || 'verde';
     return `
-    <div class="nvr-card ${nvr.activo ? 'activo' : 'caido'}"
+    <div class="nvr-card ${nvr.estadoVisual || 'normal'}"
          data-ip="${nvr.ip}" data-seccion="${seccionId}">
       <div class="dot-row">
-        <div class="dot ${nvr.activo ? 'verde' : 'rojo'}"></div>
+        <div class="dot ${colorDot}"></div>
+        ${nvr.inestable ? '<i data-lucide="activity" class="inestable-icono" title="Inestable: varios cambios de estado seguidos"></i>' : ''}
         ${camarasCaidas > 0 ? `<span class="cam-caida-dot" title="${camarasCaidas} cámara(s) caída(s) en este NVR">${camarasCaidas}</span>` : ''}
       </div>
       ${nvr.numCaidas > 0 ? `<span class="caidas-badge">${nvr.numCaidas}x</span>` : ''}
@@ -216,6 +272,7 @@ function renderGrid(seccionId, lista) {
     </div>
   `;
   }).join('');
+  lucide.createIcons();
 }
 
 // ── Click en tarjeta → modal ──────────────────────────────────────────────────
@@ -247,8 +304,8 @@ function abrirModalNVR(nvr) {
               color:#d4a017;text-decoration:underline;text-underline-offset:2px">
               ${cam.ip}
             </span>
-            <span style="font-size:0.68rem;color:${cam.activo ? '#22c55e' : '#ef4444'}">
-              ${cam.activo ? '● Activa' : '● Caída'}
+            <span style="font-size:0.68rem;color:${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[cam.estadoVisual] || (cam.activo ? '#22c55e' : '#ef4444')}">
+              ${{normal:'● Activa',degradado:'● Degradada',caido:'● Caída'}[cam.estadoVisual] || (cam.activo ? '● Activa' : '● Caída')}
             </span>
           </div>`).join('')}
       </div>`
@@ -279,10 +336,11 @@ function abrirModalNVR(nvr) {
         <div style="flex-shrink:0">
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem">
             <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;
-              background:${nvr.activo ? '#22c55e' : '#ef4444'};
-              box-shadow:0 0 6px ${nvr.activo ? '#22c55e' : '#ef4444'}"></span>
+              background:${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[nvr.estadoVisual] || (nvr.activo ? '#22c55e' : '#ef4444')};
+              box-shadow:0 0 6px ${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[nvr.estadoVisual] || (nvr.activo ? '#22c55e' : '#ef4444')}"></span>
             <strong style="color:#d4a017;font-size:1rem">${nvr.nombre}</strong>
-            <span style="color:#9ca3af;font-size:0.78rem">(${nvr.activo ? 'Activo' : 'Caído'})</span>
+            <span style="color:#9ca3af;font-size:0.78rem">(${{normal:'Activo',degradado:'Degradado',caido:'Caído'}[nvr.estadoVisual] || (nvr.activo ? 'Activo' : 'Caído')})</span>
+            ${nvr.inestable ? '<span style="color:#eab308;font-size:0.7rem;border:1px solid #eab30880;padding:0.1rem 0.4rem;border-radius:4px">⚡ Inestable</span>' : ''}
           </div>
           <p style="color:#9ca3af;font-size:0.78rem;margin-bottom:1rem">
             IP: <code style="background:#111;padding:0.1rem 0.4rem;border-radius:3px">${nvr.ip}</code>
@@ -338,7 +396,8 @@ const notyf = new Notyf({
     { type: 'nvrCaida',         className: 'toast-nvr-caida',         background: 'var(--surface2)', duration: 7000, icon: false },
     { type: 'nvrRecuperado',    className: 'toast-nvr-recuperado',    background: 'var(--surface2)', duration: 5000, icon: false },
     { type: 'camaraCaida',      className: 'toast-camara-caida',      background: 'var(--surface2)', duration: 7000, icon: false },
-    { type: 'camaraRecuperada', className: 'toast-camara-recuperada', background: 'var(--surface2)', duration: 5000, icon: false }
+    { type: 'camaraRecuperada', className: 'toast-camara-recuperada', background: 'var(--surface2)', duration: 5000, icon: false },
+    { type: 'error',            className: 'toast-error',             background: 'var(--surface2)', duration: 5000, icon: false }
   ]
 });
 

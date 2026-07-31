@@ -13,6 +13,8 @@
   --red:       #ef4444;
   --red-dim:   #991b1b;
   --orange:    #f97316;
+  --yellow:    #eab308;
+  --yellow-dim:#a16207;
   --purple:    #a855f7;
   --blue:      #3b82f6;
   --text:      #e5e7eb;
@@ -194,11 +196,20 @@ main {
 .nvr-card:hover       { border-color: var(--amber-dim); background: #282828; }
 .nvr-card.caido       { border-color: var(--red-dim); background: #1e0e0e; }
 .nvr-card.caido:hover { border-color: var(--red); }
+.nvr-card.degradado       { border-color: var(--yellow-dim); background: #1e1a0e; }
+.nvr-card.degradado:hover { border-color: var(--yellow); }
 
 .dot-row { display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.4rem; }
 .dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot.verde { background: var(--green); box-shadow: 0 0 6px var(--green); }
-.dot.rojo  { background: var(--red); box-shadow: 0 0 6px var(--red); animation: parpadeo 1.2s infinite; }
+.dot.verde    { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+.dot.amarillo { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.dot.rojo     { background: var(--red);    box-shadow: 0 0 6px var(--red); animation: parpadeo 1.2s infinite; }
+
+/* Ícono de "inestable" (flapping): dispositivo cambiando de estado seguido */
+.inestable-icono {
+  width: 11px; height: 11px; color: var(--yellow);
+  animation: parpadeo 1s infinite;
+}
 
 .cam-caida-dot {
   display:         inline-flex;
@@ -341,6 +352,57 @@ main {
   transition:    all 0.2s;
 }
 .btn-limpiar:hover { border-color: var(--amber); color: var(--amber); }
+
+/* ── Exportar (Excel/PDF) — botón con menú desplegable ─────────────────── */
+.exportar-wrapper { position: relative; }
+
+.btn-exportar {
+  display:       flex;
+  align-items:   center;
+  gap:           0.3rem;
+  background:    transparent;
+  border:        1px solid var(--border);
+  color:         var(--text-dim);
+  padding:       0.42rem 0.75rem;
+  border-radius: var(--radius);
+  cursor:        pointer;
+  font-size:     0.72rem;
+  white-space:   nowrap;
+  transition:    all 0.2s;
+}
+.btn-exportar:hover     { border-color: var(--amber); color: var(--amber); }
+.btn-exportar:disabled  { opacity: 0.6; cursor: default; }
+
+.menu-exportar {
+  display:       none;
+  position:      absolute;
+  top:           calc(100% + 0.4rem);
+  right:         0;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow:    0 10px 30px rgba(0,0,0,0.5);
+  min-width:     160px;
+  z-index:       50;
+  overflow:      hidden;
+}
+.menu-exportar.abierto { display: block; }
+
+.menu-exportar button {
+  display:       flex;
+  align-items:   center;
+  gap:           0.5rem;
+  width:         100%;
+  background:    transparent;
+  border:        none;
+  color:         var(--text);
+  padding:       0.55rem 0.75rem;
+  font-size:     0.75rem;
+  text-align:    left;
+  cursor:        pointer;
+  transition:    background 0.15s;
+}
+.menu-exportar button:hover { background: var(--surface); color: var(--amber); }
 
 /* ── Flatpickr — tema oscuro minimalista ─────────────────────────── */
 .flatpickr-calendar {
@@ -550,6 +612,9 @@ span.flatpickr-weekday {
     min-width: 0;
   }
   .btn-limpiar { justify-content: center; }
+  .exportar-wrapper { width: 100%; }
+  .btn-exportar { width: 100%; justify-content: center; }
+  .menu-exportar { left: 0; right: 0; }
 
   .tabla-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
@@ -781,6 +846,7 @@ span.flatpickr-weekday {
 .toast-nvr-recuperado    { border-left: 3px solid var(--green)  !important; }
 .toast-camara-caida      { border-left: 3px solid var(--orange) !important; }
 .toast-camara-recuperada { border-left: 3px solid var(--green)  !important; }
+.toast-error             { border-left: 3px solid var(--red)    !important; }
 
 /* Un poco más de aire respecto al borde de la pantalla, y espacio entre toasts */
 .notyf { padding: 1rem !important; }

@@ -144,6 +144,21 @@
         Limpiar
       </button>
 
+      <div class="exportar-wrapper" id="exportar-wrapper">
+        <button class="btn-exportar" id="btn-exportar" onclick="toggleMenuExportar()">
+          <i data-lucide="download" class="icon-btn"></i> Exportar
+          <i data-lucide="chevron-down" style="width:13px;height:13px;margin-left:2px"></i>
+        </button>
+        <div class="menu-exportar" id="menu-exportar">
+          <button onclick="exportarHistorial('excel')">
+            <i data-lucide="file-spreadsheet" style="width:14px;height:14px"></i> Excel (.xlsx)
+          </button>
+          <button onclick="exportarHistorial('pdf')">
+            <i data-lucide="file-text" style="width:14px;height:14px"></i> PDF
+          </button>
+        </div>
+      </div>
+
     </div>
 
     <div class="tabla-wrapper">
