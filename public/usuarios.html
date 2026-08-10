@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Usuarios — NVR Monitor HIC</title>
+  <script src="js/auth-guard.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <button id="btn-menu" class="btn-menu-hamburguesa" aria-label="Abrir menú">
+        <i data-lucide="menu"></i>
+      </button>
+      <div>
+        <h1><i data-lucide="users" class="icon-title"></i> Gestión de Usuarios</h1>
+        <p>Súper Administrador — NVR Monitor HIC</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="usuario-actual" class="usuario-badge"></span>
+      <button id="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">
+        <i data-lucide="log-out" class="icon-btn"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Menú lateral ─────────────────────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay" hidden></div>
+  <nav id="menu-lateral" class="menu-lateral" hidden>
+    <div class="menu-header">
+      <span class="menu-titulo"><i data-lucide="shield-check"></i> NVR Monitor</span>
+      <button id="btn-cerrar-menu" class="menu-cerrar" aria-label="Cerrar menú"><i data-lucide="x"></i></button>
+    </div>
+    <div class="menu-usuario">
+      <div class="menu-usuario-nombre" id="menu-usuario-nombre"></div>
+      <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
+    </div>
+    <div class="menu-links">
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> Gestión de Usuarios</a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> Mi Perfil</a>
+    </div>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> Cerrar sesión</button>
+  </nav>
+
+  <main class="pagina-angosta">
+    <div class="tabla-contenedor">
+      <div class="section-header">
+        <h2><i data-lucide="users" class="icon-section"></i> Usuarios del sistema</h2>
+        <button class="btn-primario" onclick="abrirModalCrear()">
+          <i data-lucide="user-plus"></i> Crear usuario
+        </button>
+      </div>
+
+      <div class="tabla-wrapper">
+        <table class="historial-tabla">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Permisos</th>
+              <th>Estado</th>
+              <th>Último acceso</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="usuarios-body">
+            <tr><td colspan="7" class="empty-msg">Cargando usuarios...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Modal: crear / editar usuario ───────────────────────────────────────── -->
+  <div id="modal-overlay" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-titulo">Crear usuario</h3>
+        <button class="menu-cerrar" onclick="cerrarModal()" aria-label="Cerrar"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-usuario" autocomplete="off">
+        <input type="hidden" id="usuario-id">
+
+        <div class="login-field">
+          <label for="input-username">Usuario</label>
+          <input type="text" id="input-username" placeholder="usuario.apellido" autocomplete="off" required>
+        </div>
+
+        <div class="login-field">
+          <label for="input-nombre">Nombre completo</label>
+          <input type="text" id="input-nombre" autocomplete="off" required>
+        </div>
+
+        <div class="login-field" id="grupo-password">
+          <label for="input-password">Contraseña inicial</label>
+          <input type="password" id="input-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+          <p class="form-nota" id="nota-password">La persona podrá cambiarla luego desde "olvidé mi contraseña", si registra su correo en Mi Perfil.</p>
+        </div>
+
+        <div class="login-field">
+          <label for="input-rol">Rol</label>
+          <select id="input-rol" class="filtro-select" style="width:100%">
+            <option value="analista">Analista</option>
+            <option value="visualizacion">Visualización (pantalla / TV)</option>
+          </select>
+        </div>
+
+        <div class="login-field">
+          <label>Permisos</label>
+          <div class="permisos-dropdown" id="permisos-dropdown">
+            <button type="button" class="permisos-trigger" id="permisos-trigger" onclick="togglePermisosDropdown()">
+              <span class="permisos-resumen" id="permisos-resumen">Cargando permisos...</span>
+              <i data-lucide="chevron-down"></i>
+            </button>
+            <div class="permisos-panel" id="permisos-panel" hidden></div>
+          </div>
+        </div>
+
+        <div class="login-field checkbox-field" id="grupo-activo" hidden>
+          <label><input type="checkbox" id="input-activo" checked> Usuario activo</label>
+        </div>
+
+        <div id="usuario-form-error" class="login-error" hidden></div>
+
+        <button type="submit" class="login-submit" id="btn-guardar-usuario">
+          <i data-lucide="save" class="icon-btn"></i> Guardar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/menu.js"></script>
+  <script src="js/usuarios.js"></script>
+</body>
+</html>

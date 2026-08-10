@@ -16,6 +16,9 @@
 
   <header>
     <div class="header-left">
+      <button id="btn-menu" class="btn-menu-hamburguesa" aria-label="Abrir menú">
+        <i data-lucide="menu"></i>
+      </button>
       <span class="header-dot" id="header-dot"></span>
       <div>
         <h1><i data-lucide="monitor" class="icon-title"></i> NVR Monitor</h1>
@@ -33,6 +36,25 @@
       </button>
     </div>
   </header>
+
+  <!-- ── Menú lateral ─────────────────────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay" hidden></div>
+  <nav id="menu-lateral" class="menu-lateral" hidden>
+    <div class="menu-header">
+      <span class="menu-titulo"><i data-lucide="shield-check"></i> NVR Monitor</span>
+      <button id="btn-cerrar-menu" class="menu-cerrar" aria-label="Cerrar menú"><i data-lucide="x"></i></button>
+    </div>
+    <div class="menu-usuario">
+      <div class="menu-usuario-nombre" id="menu-usuario-nombre"></div>
+      <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
+    </div>
+    <div class="menu-links">
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> Gestión de Usuarios</a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> Mi Perfil</a>
+    </div>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> Cerrar sesión</button>
+  </nav>
 
   <div id="incidente-banner" class="incidente-banner" hidden></div>
 
@@ -183,6 +205,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="js/menu.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

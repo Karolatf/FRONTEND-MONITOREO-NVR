@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil — NVR Monitor HIC</title>
+  <script src="js/auth-guard.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <button id="btn-menu" class="btn-menu-hamburguesa" aria-label="Abrir menú">
+        <i data-lucide="menu"></i>
+      </button>
+      <div>
+        <h1><i data-lucide="user" class="icon-title"></i> Mi Perfil</h1>
+        <p>NVR Monitor — HIC</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="usuario-actual" class="usuario-badge"></span>
+      <button id="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">
+        <i data-lucide="log-out" class="icon-btn"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Menú lateral ─────────────────────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay" hidden></div>
+  <nav id="menu-lateral" class="menu-lateral" hidden>
+    <div class="menu-header">
+      <span class="menu-titulo"><i data-lucide="shield-check"></i> NVR Monitor</span>
+      <button id="btn-cerrar-menu" class="menu-cerrar" aria-label="Cerrar menú"><i data-lucide="x"></i></button>
+    </div>
+    <div class="menu-usuario">
+      <div class="menu-usuario-nombre" id="menu-usuario-nombre"></div>
+      <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
+    </div>
+    <div class="menu-links">
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> Gestión de Usuarios</a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> Mi Perfil</a>
+    </div>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> Cerrar sesión</button>
+  </nav>
+
+  <main class="pagina-angosta estrecha">
+    <div class="perfil-card">
+      <div class="perfil-encabezado">
+        <div class="perfil-avatar"><i data-lucide="user"></i></div>
+        <div>
+          <div class="perfil-nombre" id="perfil-nombre">—</div>
+          <div class="perfil-usuario" id="perfil-username">—</div>
+        </div>
+        <span class="badge-rol" id="perfil-rol-badge" style="margin-left:auto"></span>
+      </div>
+
+      <p class="form-nota" style="margin-bottom:1.25rem">
+        Registra tu correo personal aquí — es el único lugar donde se guarda,
+        y solo se usa si necesitas recuperar tu contraseña desde el login.
+        El súper administrador no tiene acceso a este dato.
+      </p>
+
+      <form id="form-perfil">
+        <div class="login-field">
+          <label for="input-email">Correo personal</label>
+          <input type="email" id="input-email" placeholder="tu.correo@ejemplo.com">
+        </div>
+
+        <div id="perfil-error" class="login-error" hidden></div>
+
+        <button type="submit" class="login-submit" id="btn-guardar-perfil">
+          <i data-lucide="save" class="icon-btn"></i> <span id="btn-guardar-perfil-texto">Guardar correo</span>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <script src="js/menu.js"></script>
+  <script src="js/perfil.js"></script>
+</body>
+</html>
