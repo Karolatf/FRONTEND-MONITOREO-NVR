@@ -83,6 +83,11 @@ form.addEventListener('submit', async e => {
 
     sessionStorage.setItem('nvr_token',   data.token);
     sessionStorage.setItem('nvr_usuario', JSON.stringify(data.usuario));
+    // Se usa en "Mi Perfil" -> "Estado de Monitoreo en Vivo" -> Tiempo de
+    // Sesión. Se guarda aparte del token porque el token se renueva solo
+    // cada 5 minutos (auth-guard.js) con un `iat` nuevo cada vez — esta
+    // marca es la única que se mantiene fija desde el login real.
+    sessionStorage.setItem('nvr_login_ts', Date.now().toString());
     window.location.replace('index.html');
 
   } catch (err) {
@@ -106,7 +111,11 @@ document.getElementById('form-solicitar').addEventListener('submit', async e => 
   errorBox.hidden = true;
 
   const username = document.getElementById('username-recuperar').value.trim();
-  if (!username) return;
+  if (!username) {
+    errorBox.textContent = 'Escribe tu usuario para continuar.';
+    errorBox.hidden = false;
+    return;
+  }
 
   const btn = document.getElementById('btn-solicitar');
   btn.disabled = true;
@@ -130,7 +139,7 @@ document.getElementById('form-solicitar').addEventListener('submit', async e => 
     // Respuesta siempre genérica (exista o no la cuenta / tenga o no correo)
     usernameEnRecuperacion = username;
     const infoBox = document.getElementById('restablecer-info');
-    infoBox.textContent = data.mensaje || 'Si el usuario existe y tiene un correo registrado, se envió un código.';
+    infoBox.textContent = data.mensaje || 'Se envió un código a tu correo registrado.';
     infoBox.hidden = false;
     mostrarVista('restablecer');
 
@@ -159,6 +168,10 @@ btnVerNueva.addEventListener('click', () => {
   lucide.createIcons();
 });
 
+document.getElementById('nueva-password').addEventListener('input', e => {
+  actualizarFuerzaPassword(e.target.value, document.getElementById('fuerza-restablecer'));
+});
+
 document.getElementById('form-restablecer').addEventListener('submit', async e => {
   e.preventDefault();
   const errorBox = document.getElementById('restablecer-error');
@@ -166,14 +179,45 @@ document.getElementById('form-restablecer').addEventListener('submit', async e =
 
   const codigo        = document.getElementById('codigo').value.trim();
   const nuevaPassword  = document.getElementById('nueva-password').value;
+  const confirmarPassword = document.getElementById('confirmar-password').value;
 
   if (!usernameEnRecuperacion) {
     errorBox.textContent = 'Vuelve a solicitar el código desde el paso anterior.';
     errorBox.hidden = false;
     return;
   }
-  if (nuevaPassword.length < 8) {
-    errorBox.textContent = 'La contraseña debe tener al menos 8 caracteres.';
+
+  if (!codigo) {
+    errorBox.textContent = 'Escribe el código de verificación.';
+    errorBox.hidden = false;
+    return;
+  }
+  if (!/^\d{6}$/.test(codigo)) {
+    errorBox.textContent = 'El código debe tener 6 dígitos.';
+    errorBox.hidden = false;
+    return;
+  }
+
+  if (!nuevaPassword) {
+    errorBox.textContent = 'Escribe tu nueva contraseña.';
+    errorBox.hidden = false;
+    return;
+  }
+  if (!confirmarPassword) {
+    errorBox.textContent = 'Confirma tu nueva contraseña.';
+    errorBox.hidden = false;
+    return;
+  }
+
+  const check = validarFortalezaPassword(nuevaPassword);
+  if (!check.ok) {
+    errorBox.textContent = check.mensaje;
+    errorBox.hidden = false;
+    return;
+  }
+
+  if (nuevaPassword !== confirmarPassword) {
+    errorBox.textContent = 'Las dos contraseñas no coinciden.';
     errorBox.hidden = false;
     return;
   }

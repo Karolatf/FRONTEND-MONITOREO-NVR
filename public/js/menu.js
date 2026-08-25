@@ -52,7 +52,7 @@
   btnAbrir?.addEventListener('click', abrir);
   btnCerrar?.addEventListener('click', cerrar);
   overlay?.addEventListener('click', cerrar);
-  btnLogout?.addEventListener('click', cerrarSesion);
+  btnLogout?.addEventListener('click', () => { cerrar(); confirmarCerrarSesion(); });
 
   if (window.lucide) lucide.createIcons();
 })();

@@ -4,10 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Usuarios — NVR Monitor HIC</title>
+  <script src="js/tema.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/8.2.1/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -19,13 +25,13 @@
         <i data-lucide="menu"></i>
       </button>
       <div>
-        <h1><i data-lucide="users" class="icon-title"></i> Gestión de Usuarios</h1>
-        <p>Súper Administrador — NVR Monitor HIC</p>
+        <h1><i data-lucide="users" class="icon-title"></i> <span data-i18n="header.usuariosTitulo">Gestión de Usuarios</span></h1>
+        <p data-i18n="header.usuariosSub">Súper Administrador — NVR Monitor HIC</p>
       </div>
     </div>
     <div class="header-right">
       <span id="usuario-actual" class="usuario-badge"></span>
-      <button id="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">
+      <button id="btn-logout" onclick="confirmarCerrarSesion()" title="Cerrar sesión">
         <i data-lucide="log-out" class="icon-btn"></i>
       </button>
     </div>
@@ -43,19 +49,19 @@
       <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
     </div>
     <div class="menu-links">
-      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> Gestión de Usuarios</a>
-      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> Mi Perfil</a>
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> <span data-i18n="menu.dashboard">Dashboard</span></a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> <span data-i18n="menu.usuarios">Gestión de Usuarios</span></a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> <span data-i18n="menu.perfil">Mi Perfil</span></a>
     </div>
-    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> Cerrar sesión</button>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> <span data-i18n="menu.cerrarSesion">Cerrar sesión</span></button>
   </nav>
 
   <main class="pagina-angosta">
     <div class="tabla-contenedor">
       <div class="section-header">
-        <h2><i data-lucide="users" class="icon-section"></i> Usuarios del sistema</h2>
+        <h2><i data-lucide="users" class="icon-section"></i> <span data-i18n="usuarios.tituloSeccion">Usuarios del sistema</span></h2>
         <button class="btn-primario" onclick="abrirModalCrear()">
-          <i data-lucide="user-plus"></i> Crear usuario
+          <i data-lucide="user-plus"></i> <span data-i18n="usuarios.crear">Crear usuario</span>
         </button>
       </div>
 
@@ -63,12 +69,12 @@
         <table class="historial-tabla">
           <thead>
             <tr>
-              <th>Usuario</th>
-              <th>Nombre</th>
-              <th>Rol</th>
-              <th>Permisos</th>
-              <th>Estado</th>
-              <th>Último acceso</th>
+              <th data-i18n="usuarios.thUsuario">Usuario</th>
+              <th data-i18n="usuarios.thNombre">Nombre</th>
+              <th data-i18n="usuarios.thRol">Rol</th>
+              <th data-i18n="usuarios.thPermisos">Permisos</th>
+              <th data-i18n="usuarios.thEstado">Estado</th>
+              <th data-i18n="usuarios.thAcceso">Último acceso</th>
               <th></th>
             </tr>
           </thead>
@@ -87,12 +93,17 @@
         <h3 id="modal-titulo">Crear usuario</h3>
         <button class="menu-cerrar" onclick="cerrarModal()" aria-label="Cerrar"><i data-lucide="x"></i></button>
       </div>
-      <form id="form-usuario" autocomplete="off">
+      <form id="form-usuario" autocomplete="off" novalidate>
         <input type="hidden" id="usuario-id">
 
         <div class="login-field">
           <label for="input-username">Usuario</label>
-          <input type="text" id="input-username" placeholder="usuario.apellido" autocomplete="off" required>
+          <div class="campo-icono-wrap">
+            <input type="text" id="input-username" placeholder="usuario.apellido" autocomplete="off" required>
+            <button type="button" class="campo-icono-trailing" id="btn-desbloquear-username" title="Cambiar nombre de usuario" onclick="toggleDesbloquearUsername()">
+              <i data-lucide="lock"></i>
+            </button>
+          </div>
         </div>
 
         <div class="login-field">
@@ -103,15 +114,19 @@
         <div class="login-field" id="grupo-password">
           <label for="input-password">Contraseña inicial</label>
           <input type="password" id="input-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+          <div id="fuerza-crear" class="fuerza-password" hidden></div>
           <p class="form-nota" id="nota-password">La persona podrá cambiarla luego desde "olvidé mi contraseña", si registra su correo en Mi Perfil.</p>
         </div>
 
         <div class="login-field">
           <label for="input-rol">Rol</label>
-          <select id="input-rol" class="filtro-select" style="width:100%">
-            <option value="analista">Analista</option>
-            <option value="visualizacion">Visualización (pantalla / TV)</option>
-          </select>
+          <div class="campo-select-wrap">
+            <select id="input-rol">
+              <option value="analista">Analista</option>
+              <option value="visualizacion">Visualización (pantalla / TV)</option>
+            </select>
+            <i data-lucide="chevron-down" class="campo-select-flecha"></i>
+          </div>
         </div>
 
         <div class="login-field">
@@ -125,19 +140,17 @@
           </div>
         </div>
 
-        <div class="login-field checkbox-field" id="grupo-activo" hidden>
-          <label><input type="checkbox" id="input-activo" checked> Usuario activo</label>
-        </div>
-
         <div id="usuario-form-error" class="login-error" hidden></div>
 
         <button type="submit" class="login-submit" id="btn-guardar-usuario">
-          <i data-lucide="save" class="icon-btn"></i> Guardar
+          <i data-lucide="check" class="icon-btn"></i> Guardar
         </button>
       </form>
     </div>
   </div>
 
+  <script src="js/password.js"></script>
+  <script src="js/confirm.js"></script>
   <script src="js/menu.js"></script>
   <script src="js/usuarios.js"></script>
 </body>

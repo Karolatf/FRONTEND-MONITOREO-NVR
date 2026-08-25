@@ -443,6 +443,10 @@ function encolarEvento(evento) {
 const LIMITE_ANTES_DE_RESUMIR = 5;
 
 function mostrarAlertas(eventos) {
+  // Preferencia "Notificaciones en pantalla" (Mi Perfil): solo apaga estos
+  // toasts de alerta de caída/recuperación. No afecta el estado en vivo de
+  // las tarjetas ni los toasts de confirmación de acciones del usuario.
+  if (!notificacionesActivas()) return;
   if (eventos.length > LIMITE_ANTES_DE_RESUMIR) {
     mostrarResumenAlertas(eventos);
     return;
@@ -557,6 +561,13 @@ function mostrarUsuarioActual() {
   const usuario = obtenerUsuario();
   const el = document.getElementById('usuario-actual');
   if (usuario && el) el.textContent = usuario.nombre || usuario.username;
+}
+
+// ── Ocultar Exportar si el usuario no tiene el permiso ────────────────────────
+// El backend ya lo rechaza (403) de todas formas — esto es solo para que la
+// interfaz no muestre un botón que de todos modos va a fallar.
+if (!tienePermiso('exportar_reportes')) {
+  document.getElementById('exportar-wrapper')?.remove();
 }
 
 // ── Tiempo real vía Socket.IO ──────────────────────────────────────────────────

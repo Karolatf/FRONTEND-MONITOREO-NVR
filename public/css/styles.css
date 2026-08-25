@@ -22,16 +22,33 @@
   --radius:    8px;
 }
 
+/* ── Tema claro ──────────────────────────────────────────────────────────────
+   Se activa con data-tema="claro" en <html> (ver js/tema.js). Solo se
+   redefinen los tokens de SUPERFICIE (fondo, tarjetas, bordes, texto) — los
+   colores de acento (amber, verde, rojo, azul, morado…) se mantienen
+   exactamente igual que en el tema oscuro, tal como pide el proyecto. */
+html[data-tema="claro"] {
+  --bg:       #f3f4f6;
+  --surface:  #ffffff;
+  --surface2: #eef0f3;
+  --border:   #dde1e6;
+  --text:     #1c2027;
+  --text-dim: #667085;
+}
+
 body {
   background:  var(--bg);
   color:       var(--text);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size:   14px;
+  min-height:      100vh;
+  display:         flex;
+  flex-direction:  column;
 }
 
 /* ── Iconos Lucide ───────────────────────────────────────────────── */
 .icon-title   { width: 20px; height: 20px; vertical-align: middle; margin-right: 4px; color: var(--amber); }
-.icon-btn     { width: 13px; height: 13px; vertical-align: middle; margin-right: 3px; }
+.icon-btn     { width: 13px; height: 13px; vertical-align: middle; }
 .icon-stat    { width: 22px; height: 22px; margin-bottom: 0.4rem; opacity: 0.7; }
 .icon-section { width: 15px; height: 15px; vertical-align: middle; margin-right: 5px; }
 
@@ -75,6 +92,7 @@ header p  { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
 #btn-actualizar {
   display:       flex;
   align-items:   center;
+  gap:           0.4rem;
   background:    transparent;
   border:        1px solid var(--border);
   color:         var(--text-dim);
@@ -263,7 +281,7 @@ main {
 
 .historial-tabla { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-top: 0.5rem; min-width: 600px; }
 .historial-tabla th { text-align: left; padding: 0.5rem 0.75rem; color: var(--text-dim); border-bottom: 1px solid var(--border); font-weight: 500; font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.historial-tabla td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #1d1d1d; color: var(--text); }
+.historial-tabla td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text); }
 .historial-tabla tr:last-child td        { border-bottom: none; }
 .historial-tabla tr.fila-caida        td { background: rgba(239,68,68,0.06);  }
 .historial-tabla tr.fila-recuperacion td { background: rgba(34,197,94,0.06); }
@@ -729,6 +747,65 @@ span.flatpickr-weekday {
 }
 .login-eye:hover { color: var(--amber); }
 
+/* ── Campo con icono integrado a la derecha (ej: candado del "Usuario" en
+   Gestión de Usuarios) — mismo sistema geométrico que .login-eye de arriba,
+   con nombre propio porque aquí no es un ojo de contraseña. ──────────────── */
+.campo-icono-wrap { position: relative; }
+.campo-icono-wrap input { padding-right: 2.4rem; }
+.campo-icono-trailing {
+  position:        absolute;
+  right:           0.5rem;
+  top:             50%;
+  transform:       translateY(-50%);
+  background:      transparent;
+  border:          none;
+  color:           var(--text-dim);
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         0.3rem;
+  border-radius:   6px;
+  transition:      color 0.2s, background 0.2s;
+}
+.campo-icono-trailing:hover  { color: var(--amber); background: rgba(212,160,23,0.08); }
+.campo-icono-trailing svg    { width: 14px; height: 14px; }
+
+/* ── <select> con la misma geometría exacta que .permisos-trigger: mismo
+   padding, mismo radio, mismo borde, mismo tamaño y posición de flecha
+   (14px, a 0.85rem del borde derecho, centrada verticalmente). El navegador
+   dibuja su propia flecha nativa por defecto (appearance:none la quita) y
+   la reemplazamos por el mismo ícono lucide "chevron-down" de Permisos. ──── */
+.login-field select {
+  width:               100%;
+  background:          var(--surface2);
+  border:              1px solid var(--border);
+  border-radius:       var(--radius);
+  padding:             0.65rem 2.1rem 0.65rem 0.85rem;
+  color:               var(--text);
+  font-size:           0.85rem;
+  outline:             none;
+  cursor:              pointer;
+  transition:          border-color 0.2s;
+  appearance:          none;
+  -webkit-appearance:  none;
+  -moz-appearance:     none;
+  font-family:         inherit;
+}
+.login-field select:focus { border-color: var(--amber-dim); }
+
+.campo-select-wrap { position: relative; }
+.campo-select-flecha {
+  position:       absolute;
+  right:          0.85rem;
+  top:            50%;
+  transform:      translateY(-50%);
+  width:          14px;
+  height:         14px;
+  color:          var(--text-dim);
+  pointer-events: none;
+}
+
 .login-error {
   background:    rgba(239,68,68,0.1);
   border:        1px solid var(--red-dim);
@@ -737,7 +814,7 @@ span.flatpickr-weekday {
   border-radius: var(--radius);
   padding:       0.6rem 0.75rem;
   margin-bottom: 1rem;
-  text-align:    left;
+  text-align: center;
   line-height:   1.4;
 }
 
@@ -750,9 +827,9 @@ span.flatpickr-weekday {
   background:    var(--amber);
   border:        none;
   color:         #1a1300;
-  font-weight:   700;
-  font-size:     0.85rem;
-  padding:       0.75rem;
+  font-weight:   600;
+  font-size:     0.82rem;
+  padding:       0.7rem;
   border-radius: var(--radius);
   cursor:        pointer;
   transition:    background 0.2s, opacity 0.2s;
@@ -1052,12 +1129,16 @@ span.flatpickr-weekday {
 
 /* ── Páginas internas angostas (Gestión de Usuarios, Mi Perfil) ────────────── */
 .pagina-angosta {
-  display:   block;
-  max-width: 1100px;
-  margin:    0 auto;
-  padding:   2.5rem 1.5rem 1.5rem;
+  display:         flex;
+  flex-direction:  column;
+  justify-content: center;
+  align-items:     center;
+  flex:            1;
+  width:           100%;
+  padding:         4vh 3vw;
 }
-.pagina-angosta.estrecha { max-width: 560px; }
+.pagina-angosta > * { width: 100%; max-width: 1200px; }
+.pagina-angosta.estrecha > * { max-width: 560px; }
 
 .btn-primario {
   display:       flex;
@@ -1152,7 +1233,43 @@ span.flatpickr-weekday {
   border:        1px solid var(--border);
   border-radius: var(--radius);
   padding:       1.25rem;
+  height:        min(58vh, 620px);
+  display:       flex;
+  flex-direction:column;
+  overflow:      hidden;
 }
+
+/* Scroll interno de la tabla de usuarios: el título y el botón "Crear
+   usuario" quedan fijos arriba, y el CUERPO de la tabla se desplaza dentro
+   de .tabla-wrapper — la tarjeta nunca crece aunque se agreguen más
+   usuarios. El encabezado (<thead>) queda "pegado" arriba con
+   position:sticky mientras el resto de filas pasa por debajo.
+   Todo esto se escribe con el selector ".tabla-contenedor …" a propósito:
+   esa clase solo existe en usuarios.html, así que la tabla de Historial
+   del dashboard (que reutiliza .tabla-wrapper/.historial-tabla) queda
+   intacta. A propósito NO se toca el display de filas/celdas — la tabla
+   sigue siendo una tabla nativa normal, para que las columnas con botones
+   de acciones no pierdan su alineación. */
+.tabla-contenedor .section-header { flex-shrink: 0; }
+
+.tabla-contenedor .tabla-wrapper {
+  flex:       1;
+  min-height: 0;
+  overflow:   auto;
+}
+.tabla-contenedor .historial-tabla {
+  border-collapse: separate;
+  border-spacing:  0;
+}
+.tabla-contenedor .historial-tabla thead th {
+  position:   sticky;
+  top:        0;
+  background: var(--surface);
+  z-index:    1;
+}
+.tabla-contenedor .tabla-wrapper::-webkit-scrollbar        { width: 6px; height: 6px; }
+.tabla-contenedor .tabla-wrapper::-webkit-scrollbar-track  { background: transparent; }
+.tabla-contenedor .tabla-wrapper::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 999px; }
 
 /* ── Menú desplegable de permisos (reemplaza la lista fija de checkboxes) ──── */
 .permisos-dropdown { position: relative; }
@@ -1335,3 +1452,397 @@ span.flatpickr-weekday {
   text-align:    left;
   line-height:   1.4;
 }
+
+/* ── CRÍTICO: mismo bug de especificidad que ya vimos con el modal ──────────
+   .menu-link tiene display:flex, misma especificidad que [hidden], y esta
+   hoja se carga después — sin esto, el link de "Gestión de Usuarios" se ve
+   SIEMPRE, para cualquier rol, sin importar que menu.js le haya puesto
+   hidden=true. Debe ir siempre después de la regla .menu-link de arriba. */
+.menu-link[hidden] {
+  display: none !important;
+}
+
+/* ── Centrar la nota debajo del campo de contraseña ─────────────────────────── */
+#nota-password {
+  text-align: center;
+}
+
+/* ── Indicador de fortaleza de contraseña — barra cromática ─────────────────── */
+.fuerza-password {
+  margin-top:    0.6rem;
+  margin-bottom: 0.9rem;
+}
+/* CRÍTICO: sin esto, display:flex (de abajo) le gana al atributo hidden y
+   la barra queda visible y vacía aunque nadie haya escrito nada todavía. */
+.fuerza-password[hidden] {
+  display: none !important;
+}
+
+.fuerza-barra {
+  display: flex;
+  gap:     4px;
+  height:  5px;
+  margin-bottom: 0.6rem;
+}
+.fuerza-segmento {
+  flex:          1;
+  border-radius: 3px;
+  background:    var(--border);
+  transition:    background 0.25s ease;
+}
+
+.fuerza-etiqueta {
+  font-size:     0.68rem;
+  font-weight:   600;
+  margin-bottom: 0.25rem;
+  text-align:    center;
+  transition:    color 0.25s ease;
+}
+.fuerza-detalle {
+  font-size:   0.65rem;
+  color:       var(--text-dim);
+  line-height: 1.4;
+  text-align:  center;
+}
+
+
+/* ── Notificaciones de éxito/error (Notyf) — quitar el verde/rojo sólido
+   por defecto, que no combina con el tema oscuro. Se queda solo la franja
+   de color a la izquierda, igual que el resto de toasts del sistema. ──────── */
+.notyf__toast--success,
+.notyf__toast--error {
+  background: var(--surface) !important;
+}
+.notyf__toast--success .notyf__message,
+.notyf__toast--error .notyf__message {
+  color: var(--text) !important;
+}
+
+/* ── Modal genérico (confirmar / pedir contraseña) — reemplaza SweetAlert2 ────
+   Más compacto que la primera versión, y con tipografía sutil en los
+   botones (peso medio, no negrita gritona) para que combine con el resto
+   del sistema en vez de verse como una alerta genérica. ───────────────────── */
+.modal-card-generico { max-width: 350px; }
+
+.modal-header h3 { font-size: 0.9rem; font-weight: 600; }
+
+.generico-cuerpo { padding: 0.9rem 1.15rem 0.1rem; }
+.generico-mensaje {
+  font-size:     0.78rem;
+  color:         var(--text-dim);
+  line-height:   1.55;
+  margin-bottom: 0.55rem;
+}
+
+.generico-acciones {
+  display: flex;
+  gap:     0.55rem;
+  padding: 0.95rem 1.15rem 1.15rem;
+}
+.generico-acciones button {
+  flex:            1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.35rem;
+  font-size:       0.74rem;
+  font-weight:     500;
+  padding:         0.58rem 0.8rem;
+  letter-spacing:  0.01em;
+}
+.generico-acciones button svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+.generico-acciones .btn-secundario {
+  background: transparent;
+  border:     1px solid var(--border);
+  color:      var(--text-dim);
+}
+.generico-acciones .btn-secundario:hover { border-color: #4a4a4a; color: var(--text); }
+
+.generico-acciones .login-submit {
+  margin:      0;
+  font-weight: 600;
+}
+
+.btn-peligro-solido {
+  background: rgba(239,68,68,0.12) !important;
+  border:     1px solid var(--red) !important;
+  color:      var(--red) !important;
+}
+.btn-peligro-solido:hover { background: rgba(239,68,68,0.22) !important; }
+
+/* ── Mi Perfil — sección de información (rol, permisos) ─────────────────────── */
+.perfil-info-grid { margin-bottom: 1.25rem; }
+.perfil-info-item { display: flex; flex-direction: column; gap: 0.3rem; }
+.perfil-info-label {
+  font-size:      0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color:          var(--text-dim);
+  font-weight:    600;
+}
+.perfil-info-valor { font-size: 0.8rem; color: var(--text); line-height: 1.5; }
+
+.perfil-separador {
+  border:     none;
+  border-top: 1px solid var(--border);
+  margin:     1.25rem 0;
+}
+
+/* ── Mi Perfil — encabezado (avatar, nombre, badge de rol) ──────────────────── */
+.perfil-encabezado-card {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 14px;
+  padding:       1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.perfil-encabezado-badge { margin-left: auto; }
+
+/* ── Mi Perfil — cuadrícula 2×2 ───────────────────────────────────────────────
+   align-items se deja en su valor por defecto (stretch): así, las dos
+   tarjetas de una misma fila SIEMPRE comparten la misma altura (la que
+   necesite la más alta de las dos), sin importar cuánto contenido tenga
+   cada una — esto es lo que da la simetría "pixel-perfect" pedida. */
+.perfil-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   1.25rem;
+}
+@media (max-width: 720px) {
+  .perfil-grid { grid-template-columns: 1fr; }
+}
+
+.perfil-card-titulo {
+  font-size:     0.8rem;
+  color:         var(--amber);
+  font-weight:   600;
+  display:       flex;
+  align-items:   center;
+  margin-bottom: 1.1rem;
+}
+
+/* ── Mi Perfil — fila inferior (Preferencias + tarjeta dinámica) ─────────────
+   Altura fija e idéntica para ambas tarjetas: la de la izquierda
+   (Preferencias) casi no tiene contenido, y la de la derecha (Historial de
+   Inicios de Sesión) podría tener decenas de registros — sin esta altura
+   fija, la fila crecería con el contenido más largo y las dos tarjetas
+   dejarían de verse simétricas. El contenido que no cabe (la tabla del
+   historial) se desplaza con scroll interno, nunca estirando la tarjeta. */
+.perfil-card-inferior {
+  height:         234px;
+  display:        flex;
+  flex-direction: column;
+  overflow:       hidden;
+}
+
+.perfil-card-inferior-cuerpo {
+  display:        flex;
+  flex-direction: column;
+  height:         100%;
+}
+/* CRÍTICO: mismo bug de especificidad que .menu-link/.modal-overlay — un
+   display:flex propio le gana al atributo [hidden] si no se refuerza acá. */
+.perfil-card-inferior-cuerpo[hidden] {
+  display: none !important;
+}
+.perfil-card-inferior-cuerpo .perfil-card-titulo { flex-shrink: 0; }
+
+/* ── Preferencias de Interfaz — lista compacta de configuraciones ─────────────
+   4 filas dentro del mismo espacio fijo de la tarjeta (no se cambia el alto
+   de .perfil-card-inferior): Modo de tema, Idioma, Notificaciones en
+   pantalla y Actualización automática. */
+.perfil-pref-lista {
+  display:         flex;
+  flex-direction:  column;
+  justify-content: center;
+  gap:             0.55rem;
+  flex:            1;
+  min-height:      0;
+}
+.perfil-pref-fila {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             0.75rem;
+}
+.perfil-pref-label {
+  display:     flex;
+  align-items: center;
+  gap:         0.45rem;
+  font-size:   0.76rem;
+  color:       var(--text);
+  white-space: nowrap;
+  overflow:    hidden;
+  text-overflow: ellipsis;
+}
+.perfil-pref-label svg { width: 14px; height: 14px; color: var(--text-dim); flex-shrink: 0; }
+
+.segmentado {
+  display:        inline-flex;
+  align-self:     flex-start;
+  background:     var(--surface2);
+  border:         1px solid var(--border);
+  border-radius:  999px;
+  padding:        4px;
+  gap:            4px;
+}
+.segmentado-opcion {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.4rem;
+  border:          none;
+  background:      transparent;
+  color:           var(--text-dim);
+  font-family:     inherit;
+  font-size:       0.76rem;
+  font-weight:     600;
+  padding:         0.55rem 1.15rem;
+  border-radius:   999px;
+  cursor:          pointer;
+  transition:      background 0.2s ease, color 0.2s ease;
+}
+.segmentado-opcion svg { width: 14px; height: 14px; }
+.segmentado-opcion:hover:not(.activo) { color: var(--text); }
+.segmentado-opcion.activo {
+  background: var(--amber);
+  color:      #1a1300;
+}
+
+/* Variante compacta del segmentado (solo íconos), para caber en una fila */
+.segmentado-mini { padding: 3px; gap: 3px; flex-shrink: 0; }
+.segmentado-mini .segmentado-opcion { padding: 0.4rem 0.55rem; }
+.segmentado-mini .segmentado-opcion svg { width: 13px; height: 13px; }
+
+/* Select compacto (Idioma) — mismo lenguaje visual que .campo-select-wrap
+   del modal de usuarios, angosto para caber en una fila de Preferencias */
+.campo-select-mini { flex-shrink: 0; width: 118px; }
+.campo-select-mini select {
+  width:         100%;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  color:         var(--text);
+  font-family:   inherit;
+  font-size:     0.72rem;
+  padding:       0.4rem 1.5rem 0.4rem 0.6rem;
+  appearance:    none;
+  cursor:        pointer;
+  transition:    border-color 0.2s;
+}
+.campo-select-mini select:hover { border-color: var(--amber-dim); }
+.campo-select-mini select:focus { outline: none; border-color: var(--amber); }
+.campo-select-mini .campo-select-flecha { right: 0.55rem; width: 12px; height: 12px; }
+
+/* Interruptor compacto (on/off) — Notificaciones y Actualización automática */
+.mini-switch {
+  position:      relative;
+  flex-shrink:   0;
+  width:         34px;
+  height:        20px;
+  border-radius: 999px;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  cursor:        pointer;
+  padding:       0;
+  transition:    background 0.2s ease, border-color 0.2s ease;
+}
+.mini-switch-bola {
+  position:      absolute;
+  top:           2px;
+  left:          2px;
+  width:         14px;
+  height:        14px;
+  border-radius: 50%;
+  background:    var(--text-dim);
+  transition:    transform 0.2s ease, background 0.2s ease;
+}
+.mini-switch.activo             { background: var(--amber); border-color: var(--amber); }
+.mini-switch.activo .mini-switch-bola { transform: translateX(14px); background: #1a1300; }
+
+/* ── Estado de Monitoreo en Vivo (rol: analista / visualización) ────────────── */
+.perfil-lista-estado {
+  display:         flex;
+  flex-direction:  column;
+  justify-content: center;
+  gap:             0.85rem;
+  flex:            1;
+  min-height:      0;
+}
+.perfil-lista-fila {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  font-size:       0.8rem;
+}
+.perfil-lista-label { color: var(--text-dim); }
+.perfil-lista-valor {
+  display:     flex;
+  align-items: center;
+  gap:         0.45rem;
+  color:       var(--text);
+  font-weight: 500;
+}
+
+/* ── Historial de Inicios de Sesión (rol: superadmin) ─────────────────────────
+   Encabezado (<thead>) "pegado" arriba con position:sticky mientras el
+   resto de filas se desplaza por debajo, dentro de .perfil-tabla-historial-
+   wrap. La tabla sigue siendo una tabla nativa normal (sin trucos de
+   display), así que las columnas nunca pierden su alineación. */
+.perfil-tabla-historial-wrap {
+  flex:       1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.perfil-tabla-historial {
+  width:            100%;
+  border-collapse:  separate;
+  border-spacing:   0;
+  font-size:        0.76rem;
+}
+.perfil-tabla-historial thead th {
+  position:   sticky;
+  top:        0;
+  background: var(--surface);
+  z-index:    1;
+  text-align:     left;
+  color:          var(--text-dim);
+  font-size:      0.62rem;
+  font-weight:    600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding:        0 0 0.6rem;
+}
+.perfil-tabla-historial td {
+  padding:      0.5rem 0;
+  color:        var(--text);
+  border-top:   1px solid var(--border);
+  vertical-align: middle;
+}
+.perfil-tabla-historial tbody tr:first-child td { border-top: none; }
+.perfil-tabla-ip   { font-family: monospace; color: var(--text-dim); }
+.perfil-tabla-vacio {
+  text-align:  center;
+  color:       var(--text-dim);
+  padding:     1.2rem 0 !important;
+  border-top:  none !important;
+}
+.perfil-tabla-historial-wrap::-webkit-scrollbar        { width: 6px; }
+.perfil-tabla-historial-wrap::-webkit-scrollbar-track  { background: transparent; }
+.perfil-tabla-historial-wrap::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 999px; }
+
+.perfil-tabla-info { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+.perfil-tabla-info tr { border-bottom: 1px solid var(--border); }
+.perfil-tabla-info tr:last-child { border-bottom: none; }
+.perfil-tabla-info th,
+.perfil-tabla-info td { padding: 0.7rem 0; text-align: left; font-weight: 400; vertical-align: top; }
+.perfil-tabla-info th {
+  color:          var(--text-dim);
+  font-size:      0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width:          38%;
+}
+.perfil-tabla-info td { color: var(--text); line-height: 1.5; }

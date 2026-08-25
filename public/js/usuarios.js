@@ -69,8 +69,11 @@ function pintarUsuarios() {
             <button class="btn-icono" title="Cambiar contraseña" onclick="cambiarPassword(${u.id}, '${escaparHTML(u.username)}')">
               <i data-lucide="key-round"></i>
             </button>
-            <button class="btn-icono peligro" title="Desactivar" onclick="desactivarUsuario(${u.id}, '${escaparHTML(u.username)}')">
-              <i data-lucide="user-x"></i>
+            <button class="btn-icono" title="${u.activo ? 'Desactivar' : 'Activar'}" onclick="toggleEstadoUsuario(${u.id}, '${escaparHTML(u.username)}', ${u.activo ? 'true' : 'false'})">
+              <i data-lucide="${u.activo ? 'user-x' : 'user-check'}"></i>
+            </button>
+            <button class="btn-icono peligro" title="Eliminar definitivamente" onclick="eliminarUsuarioDefinitivo(${u.id}, '${escaparHTML(u.username)}')">
+              <i data-lucide="trash-2"></i>
             </button>
           </div>
         `}
@@ -108,12 +111,14 @@ function abrirModalCrear() {
   document.getElementById('usuario-id').value       = '';
   document.getElementById('input-username').value   = '';
   document.getElementById('input-username').disabled = false;
+  document.getElementById('input-username').dataset.original = '';
+  document.getElementById('btn-desbloquear-username').style.display = 'none';
   document.getElementById('input-nombre').value      = '';
   document.getElementById('input-rol').value         = 'analista';
   document.getElementById('grupo-password').hidden   = false;
   document.getElementById('input-password').required = true;
   document.getElementById('input-password').value    = '';
-  document.getElementById('grupo-activo').hidden      = true;
+  actualizarFuerzaPassword('', document.getElementById('fuerza-crear'));
   ocultarErrorModal();
   pintarChecksPermisos([]);
   abrirModal();
@@ -126,18 +131,54 @@ function abrirModalEditar(id) {
 
   document.getElementById('modal-titulo').textContent = `Editar ${u.nombre}`;
   document.getElementById('usuario-id').value        = u.id;
-  document.getElementById('input-username').value    = u.username;
-  document.getElementById('input-username').disabled = true; // El username no se cambia una vez creado
+
+  const inputUsername = document.getElementById('input-username');
+  inputUsername.value            = u.username;
+  inputUsername.disabled         = true; // Bloqueado por defecto — hay que desbloquearlo a propósito
+  inputUsername.dataset.original = u.username;
+
+  const btnDesbloquear = document.getElementById('btn-desbloquear-username');
+  btnDesbloquear.style.display = '';
+  btnDesbloquear.innerHTML     = '<i data-lucide="lock"></i>';
+  btnDesbloquear.title         = 'Cambiar nombre de usuario';
+
   document.getElementById('input-nombre').value       = u.nombre;
   document.getElementById('input-rol').value          = u.rol;
   document.getElementById('grupo-password').hidden    = true; // La contraseña se cambia aparte
   document.getElementById('input-password').required  = false;
-  document.getElementById('grupo-activo').hidden       = false;
-  document.getElementById('input-activo').checked      = !!u.activo;
   ocultarErrorModal();
   pintarChecksPermisos(u.permisos || []);
   abrirModal();
 }
+
+// ── Desbloquear/bloquear el campo de usuario (solo en modo edición) ──────────
+// Bloqueado por defecto a propósito: si se escribe mal, la persona queda sin
+// poder iniciar sesión. Hay que desbloquearlo explícitamente para tocarlo.
+function toggleDesbloquearUsername() {
+  const input = document.getElementById('input-username');
+  const btn   = document.getElementById('btn-desbloquear-username');
+
+  const estabaBloqueado = input.disabled;
+  input.disabled = !estabaBloqueado;
+
+  if (estabaBloqueado) {
+    input.focus();
+    btn.innerHTML = '<i data-lucide="lock-open"></i>';
+    btn.title     = 'Bloquear de nuevo (descartar el cambio)';
+  } else {
+    // Se vuelve a bloquear: se descarta cualquier cambio a medio escribir
+    input.value   = input.dataset.original || input.value;
+    btn.innerHTML = '<i data-lucide="lock"></i>';
+    btn.title     = 'Cambiar nombre de usuario';
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+// Actualiza el indicador de fortaleza mientras se escribe la contraseña inicial
+document.getElementById('input-password').addEventListener('input', e => {
+  actualizarFuerzaPassword(e.target.value, document.getElementById('fuerza-crear'));
+});
 
 function pintarChecksPermisos(permisosActuales) {
   const panel = document.getElementById('permisos-panel');
@@ -242,17 +283,57 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
 
   const id     = document.getElementById('usuario-id').value;
   const btn    = document.getElementById('btn-guardar-usuario');
+
+  const nombre = document.getElementById('input-nombre').value.trim();
+  if (!nombre) {
+    mostrarErrorModal('El nombre completo es obligatorio.');
+    document.getElementById('input-nombre').focus();
+    return;
+  }
+
   const cuerpo = {
-    nombre:   document.getElementById('input-nombre').value.trim(),
+    nombre,
     rol:      document.getElementById('input-rol').value,
     permisos: leerPermisosSeleccionados()
   };
 
   if (!id) {
-    cuerpo.username = document.getElementById('input-username').value.trim();
-    cuerpo.password = document.getElementById('input-password').value;
+    const username = document.getElementById('input-username').value.trim();
+    if (!username) {
+      mostrarErrorModal('El usuario es obligatorio.');
+      document.getElementById('input-username').focus();
+      return;
+    }
+
+    const password = document.getElementById('input-password').value;
+    const check = validarFortalezaPassword(password);
+    if (!check.ok) {
+      mostrarErrorModal(check.mensaje);
+      return;
+    }
+    cuerpo.username = username;
+    cuerpo.password = password;
   } else {
-    cuerpo.activo = document.getElementById('input-activo').checked;
+    // Edición: el username solo se manda si el ing. lo desbloqueó Y de verdad lo cambió.
+    const inputUsername    = document.getElementById('input-username');
+    const usernameOriginal  = inputUsername.dataset.original || '';
+    const usernameNuevo     = inputUsername.value.trim().toLowerCase();
+
+    if (!inputUsername.disabled && usernameNuevo !== usernameOriginal) {
+      if (!usernameNuevo) {
+        mostrarErrorModal('El usuario no puede quedar vacío.');
+        return;
+      }
+      const confirmado = await confirmarAccion({
+        titulo: '¿Cambiar el nombre de usuario?',
+        mensaje: `Vas a cambiar el usuario de "${usernameOriginal}" a "${usernameNuevo}". Deberá iniciar sesión con el usuario nuevo la próxima vez.`,
+        textoConfirmar: 'Cambiar usuario',
+        iconoConfirmar: 'lock-open',
+        peligro: true
+      });
+      if (!confirmado) return;
+      cuerpo.username = usernameNuevo;
+    }
   }
 
   btn.disabled = true;
@@ -281,30 +362,30 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
     mostrarErrorModal('Sin conexión con el servidor. Intenta de nuevo.');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="save" class="icon-btn"></i> Guardar';
+    btn.innerHTML = '<i data-lucide="check" class="icon-btn"></i> Guardar';
     lucide.createIcons();
   }
 });
 
-// ── Cambiar contraseña (acción aparte, con SweetAlert2) ───────────────────────
+// ── Cambiar contraseña (acción aparte) ────────────────────────────────────────
 async function cambiarPassword(id, username) {
-  const { value: password } = await Swal.fire({
-    title: `Nueva contraseña para ${username}`,
-    input: 'password',
-    inputLabel: 'Mínimo 8 caracteres',
-    inputPlaceholder: '••••••••',
-    background: '#1a1a1a',
-    color: '#e5e7eb',
-    confirmButtonColor: '#d4a017',
-    confirmButtonText: 'Cambiar contraseña',
-    cancelButtonText: 'Cancelar',
-    showCancelButton: true,
-    inputValidator: valor => {
-      if (!valor || valor.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
-    }
+  const password = await pedirPassword({
+    titulo: `Nueva contraseña para ${username}`,
+    textoConfirmar: 'Cambiar',
+    iconoConfirmar: 'key-round'
   });
 
   if (!password) return;
+
+  const confirmado = await confirmarAccion({
+    titulo: '¿Confirmar cambio de contraseña?',
+    mensaje: `Vas a cambiar la contraseña de ${username}. Deberá usar la nueva contraseña la próxima vez que inicie sesión.`,
+    textoConfirmar: 'Cambiar contraseña',
+    iconoConfirmar: 'key-round',
+    peligro: true,
+    ajustado: true
+  });
+  if (!confirmado) return;
 
   try {
     const res  = await authFetch(`/api/usuarios/${id}/password`, {
@@ -326,35 +407,68 @@ async function cambiarPassword(id, username) {
   }
 }
 
-// ── Desactivar usuario (borrado suave, con confirmación) ──────────────────────
-async function desactivarUsuario(id, username) {
-  const confirmacion = await Swal.fire({
-    title: `¿Desactivar a ${username}?`,
-    text:  'No podrá iniciar sesión hasta que lo actives de nuevo. No se borra su historial.',
-    icon:  'warning',
-    background: '#1a1a1a',
-    color: '#e5e7eb',
-    confirmButtonColor: '#ef4444',
-    confirmButtonText: 'Sí, desactivar',
-    cancelButtonText: 'Cancelar',
-    showCancelButton: true
+// ── Activar / desactivar (reversible — no borra nada) ─────────────────────────
+async function toggleEstadoUsuario(id, username, activoActual) {
+  const ok = await confirmarAccion({
+    titulo: activoActual ? `¿Desactivar a ${username}?` : `¿Activar a ${username}?`,
+    mensaje: activoActual
+      ? 'No podrá iniciar sesión hasta que lo actives de nuevo. No se borra su historial ni sus datos.'
+      : 'Podrá volver a iniciar sesión normalmente, con los mismos permisos que tenía.',
+    textoConfirmar: activoActual ? 'Sí, desactivar' : 'Sí, activar',
+    iconoConfirmar: 'check',
+    peligro: activoActual
   });
 
-  if (!confirmacion.isConfirmed) return;
+  if (!ok) return;
+
+  try {
+    const res  = await authFetch(`/api/usuarios/${id}/estado`, {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ activo: !activoActual })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      notyf.error(data.error || 'No se pudo actualizar el estado.');
+      return;
+    }
+    notyf.success(`${username} fue ${activoActual ? 'desactivado' : 'activado'}.`);
+    cargarUsuarios();
+
+  } catch (err) {
+    console.error('Error al cambiar el estado:', err);
+    notyf.error('Sin conexión con el servidor.');
+  }
+}
+
+// ── Eliminar definitivamente (irreversible — borra el registro completo) ─────
+// Distinto de desactivar: esto es para cuando alguien ya no trabaja en el
+// hospital. Si solo está de vacaciones o con licencia, usa "Desactivar".
+async function eliminarUsuarioDefinitivo(id, username) {
+  const ok = await confirmarAccion({
+    titulo: `¿Eliminar a ${username} permanentemente?`,
+    mensaje: 'Esta acción no se puede deshacer — se borra la cuenta por completo. Si solo está de vacaciones o con licencia, usa "Desactivar" en su lugar.',
+    textoConfirmar: 'Eliminar',
+    iconoConfirmar: 'trash-2',
+    peligro: true
+  });
+
+  if (!ok) return;
 
   try {
     const res  = await authFetch(`/api/usuarios/${id}`, { method: 'DELETE' });
     const data = await res.json();
 
     if (!res.ok) {
-      notyf.error(data.error || 'No se pudo desactivar el usuario.');
+      notyf.error(data.error || 'No se pudo eliminar el usuario.');
       return;
     }
-    notyf.success(`${username} fue desactivado.`);
+    notyf.success(`${username} fue eliminado permanentemente.`);
     cargarUsuarios();
 
   } catch (err) {
-    console.error('Error al desactivar usuario:', err);
+    console.error('Error al eliminar usuario:', err);
     notyf.error('Sin conexión con el servidor.');
   }
 }

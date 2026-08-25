@@ -4,7 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NVR Monitor — HIC</title>
+  <script src="js/tema.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/8.2.1/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
@@ -21,17 +28,17 @@
       </button>
       <span class="header-dot" id="header-dot"></span>
       <div>
-        <h1><i data-lucide="monitor" class="icon-title"></i> NVR Monitor</h1>
-        <p>Sistema de Monitoreo en Tiempo Real — HIC</p>
+        <h1><i data-lucide="monitor" class="icon-title"></i> <span data-i18n="header.dashboardTitulo">NVR Monitor</span></h1>
+        <p data-i18n="header.dashboardSub">Sistema de Monitoreo en Tiempo Real — HIC</p>
       </div>
     </div>
     <div class="header-right">
       <span id="ultima-actualizacion">Conectando...</span>
       <button id="btn-actualizar" onclick="fetchStatus()">
-        <i data-lucide="refresh-cw" class="icon-btn"></i> Actualizar
+        <i data-lucide="refresh-cw" class="icon-btn"></i> <span data-i18n="header.actualizar">Actualizar</span>
       </button>
       <span id="usuario-actual" class="usuario-badge"></span>
-      <button id="btn-logout" onclick="cerrarSesion()" title="Cerrar sesión">
+      <button id="btn-logout" onclick="confirmarCerrarSesion()" title="Cerrar sesión">
         <i data-lucide="log-out" class="icon-btn"></i>
       </button>
     </div>
@@ -49,11 +56,11 @@
       <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
     </div>
     <div class="menu-links">
-      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> Gestión de Usuarios</a>
-      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> Mi Perfil</a>
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> <span data-i18n="menu.dashboard">Dashboard</span></a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> <span data-i18n="menu.usuarios">Gestión de Usuarios</span></a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> <span data-i18n="menu.perfil">Mi Perfil</span></a>
     </div>
-    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> Cerrar sesión</button>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> <span data-i18n="menu.cerrarSesion">Cerrar sesión</span></button>
   </nav>
 
   <div id="incidente-banner" class="incidente-banner" hidden></div>
@@ -205,7 +212,10 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="js/password.js"></script>
+  <script src="js/confirm.js"></script>
   <script src="js/menu.js"></script>
+  <script src="js/preferencias.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
