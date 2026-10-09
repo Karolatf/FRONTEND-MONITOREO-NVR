@@ -19,6 +19,10 @@
     if (nombreEl) nombreEl.textContent = usuario.nombre || usuario.username;
     if (rolEl)    rolEl.textContent    = etiquetaRol(usuario.rol);
 
+    if (typeof registrarRepintado === 'function') {
+      registrarRepintado(() => { if (rolEl) rolEl.textContent = etiquetaRol(usuario.rol); });
+    }
+
     // Gestión de Usuarios: exclusivo del súper administrador — no es un
     // permiso otorgable, se decide solo por el rol
     const linkUsuarios = document.getElementById('menu-link-usuarios');
@@ -58,9 +62,5 @@
 })();
 
 function etiquetaRol(rol) {
-  return {
-    superadmin:    'Súper Administrador',
-    analista:      'Analista',
-    visualizacion: 'Visualización'
-  }[rol] || rol;
+  return t(`roles.${rol}`) || rol;
 }

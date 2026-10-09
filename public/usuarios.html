@@ -97,43 +97,43 @@
         <input type="hidden" id="usuario-id">
 
         <div class="login-field">
-          <label for="input-username">Usuario</label>
+          <label for="input-username" data-i18n="usuarios.thUsuario">Usuario</label>
           <div class="campo-icono-wrap">
             <input type="text" id="input-username" placeholder="usuario.apellido" autocomplete="off" required>
-            <button type="button" class="campo-icono-trailing" id="btn-desbloquear-username" title="Cambiar nombre de usuario" onclick="toggleDesbloquearUsername()">
+            <button type="button" class="campo-icono-trailing" id="btn-desbloquear-username" data-i18n-title="usuarios.cambiarUsername" title="Cambiar nombre de usuario" onclick="toggleDesbloquearUsername()">
               <i data-lucide="lock"></i>
             </button>
           </div>
         </div>
 
         <div class="login-field">
-          <label for="input-nombre">Nombre completo</label>
+          <label for="input-nombre" data-i18n="usuarios.thNombre">Nombre completo</label>
           <input type="text" id="input-nombre" autocomplete="off" required>
         </div>
 
         <div class="login-field" id="grupo-password">
-          <label for="input-password">Contraseña inicial</label>
-          <input type="password" id="input-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+          <label for="input-password" data-i18n="usuarios.contrasenaInicial">Contraseña inicial</label>
+          <input type="password" id="input-password" data-i18n-placeholder="confirm.passwordPlaceholder" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
           <div id="fuerza-crear" class="fuerza-password" hidden></div>
-          <p class="form-nota" id="nota-password">La persona podrá cambiarla luego desde "olvidé mi contraseña", si registra su correo en Mi Perfil.</p>
+          <p class="form-nota" id="nota-password" data-i18n="usuarios.notaPassword">La persona podrá cambiarla luego desde "olvidé mi contraseña", si registra su correo en Mi Perfil.</p>
         </div>
 
         <div class="login-field">
-          <label for="input-rol">Rol</label>
+          <label for="input-rol" data-i18n="usuarios.thRol">Rol</label>
           <div class="campo-select-wrap">
             <select id="input-rol">
-              <option value="analista">Analista</option>
-              <option value="visualizacion">Visualización (pantalla / TV)</option>
+              <option value="analista" data-i18n="roles.analista">Analista</option>
+              <option value="visualizacion" data-i18n="usuarios.rolVisualizacion">Visualización (pantalla / TV)</option>
             </select>
             <i data-lucide="chevron-down" class="campo-select-flecha"></i>
           </div>
         </div>
 
         <div class="login-field">
-          <label>Permisos</label>
+          <label data-i18n="usuarios.thPermisos">Permisos</label>
           <div class="permisos-dropdown" id="permisos-dropdown">
             <button type="button" class="permisos-trigger" id="permisos-trigger" onclick="togglePermisosDropdown()">
-              <span class="permisos-resumen" id="permisos-resumen">Cargando permisos...</span>
+              <span class="permisos-resumen" id="permisos-resumen" data-i18n="usuarios.cargandoPermisos">Cargando permisos...</span>
               <i data-lucide="chevron-down"></i>
             </button>
             <div class="permisos-panel" id="permisos-panel" hidden></div>
@@ -143,7 +143,7 @@
         <div id="usuario-form-error" class="login-error" hidden></div>
 
         <button type="submit" class="login-submit" id="btn-guardar-usuario">
-          <i data-lucide="check" class="icon-btn"></i> Guardar
+          <i data-lucide="check" class="icon-btn"></i> <span data-i18n="usuarios.guardar">Guardar</span>
         </button>
       </form>
     </div>
@@ -152,6 +152,7 @@
   <script src="js/password.js"></script>
   <script src="js/confirm.js"></script>
   <script src="js/menu.js"></script>
+  <script src="js/preferencias.js"></script>
   <script src="js/usuarios.js"></script>
 </body>
 </html>

@@ -60,12 +60,12 @@ form.addEventListener('submit', async e => {
   const password = inputPass.value;
 
   if (!username || !password) {
-    mostrarError('Completa usuario y contraseña.');
+    mostrarError(t('login.completaCampos'));
     return;
   }
 
   btnLogin.disabled = true;
-  btnLogin.innerHTML = '<i data-lucide="loader" class="icon-btn login-spin"></i> Ingresando...';
+  btnLogin.innerHTML = `<i data-lucide="loader" class="icon-btn login-spin"></i> ${t('login.ingresando')}`;
   lucide.createIcons();
 
   try {
@@ -77,7 +77,7 @@ form.addEventListener('submit', async e => {
     const data = await res.json();
 
     if (!res.ok) {
-      mostrarError(data.error || 'No se pudo iniciar sesión.');
+      mostrarError(data.error || t('login.noSePudoIniciar'));
       return;
     }
 
@@ -92,10 +92,10 @@ form.addEventListener('submit', async e => {
 
   } catch (err) {
     console.error('Error de login:', err);
-    mostrarError('Sin conexión con el servidor. Intenta de nuevo.');
+    mostrarError(t('login.sinConexionIntenta'));
   } finally {
     btnLogin.disabled = false;
-    btnLogin.innerHTML = '<i data-lucide="log-in" class="icon-btn"></i> Ingresar';
+    btnLogin.innerHTML = `<i data-lucide="log-in" class="icon-btn"></i> ${t('login.ingresar')}`;
     lucide.createIcons();
   }
 });
@@ -112,14 +112,14 @@ document.getElementById('form-solicitar').addEventListener('submit', async e => 
 
   const username = document.getElementById('username-recuperar').value.trim();
   if (!username) {
-    errorBox.textContent = 'Escribe tu usuario para continuar.';
+    errorBox.textContent = t('login.escribeUsuario');
     errorBox.hidden = false;
     return;
   }
 
   const btn = document.getElementById('btn-solicitar');
   btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader" class="icon-btn login-spin"></i> Enviando...';
+  btn.innerHTML = `<i data-lucide="loader" class="icon-btn login-spin"></i> ${t('login.enviando')}`;
   lucide.createIcons();
 
   try {
@@ -131,7 +131,7 @@ document.getElementById('form-solicitar').addEventListener('submit', async e => 
     const data = await res.json();
 
     if (!res.ok) {
-      errorBox.textContent = data.error || 'No se pudo procesar la solicitud.';
+      errorBox.textContent = data.error || t('login.noSePudoProcesar');
       errorBox.hidden = false;
       return;
     }
@@ -139,17 +139,17 @@ document.getElementById('form-solicitar').addEventListener('submit', async e => 
     // Respuesta siempre genérica (exista o no la cuenta / tenga o no correo)
     usernameEnRecuperacion = username;
     const infoBox = document.getElementById('restablecer-info');
-    infoBox.textContent = data.mensaje || 'Se envió un código a tu correo registrado.';
+    infoBox.textContent = data.mensaje || t('login.seEnvioCodigo');
     infoBox.hidden = false;
     mostrarVista('restablecer');
 
   } catch (err) {
     console.error('Error al solicitar recuperación:', err);
-    errorBox.textContent = 'Sin conexión con el servidor. Intenta de nuevo.';
+    errorBox.textContent = t('login.sinConexionIntenta');
     errorBox.hidden = false;
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="send" class="icon-btn"></i> Enviar código';
+    btn.innerHTML = `<i data-lucide="send" class="icon-btn"></i> ${t('login.enviarCodigo')}`;
     lucide.createIcons();
   }
 });
@@ -182,29 +182,29 @@ document.getElementById('form-restablecer').addEventListener('submit', async e =
   const confirmarPassword = document.getElementById('confirmar-password').value;
 
   if (!usernameEnRecuperacion) {
-    errorBox.textContent = 'Vuelve a solicitar el código desde el paso anterior.';
+    errorBox.textContent = t('login.volverASolicitar');
     errorBox.hidden = false;
     return;
   }
 
   if (!codigo) {
-    errorBox.textContent = 'Escribe el código de verificación.';
+    errorBox.textContent = t('login.escribeCodigo');
     errorBox.hidden = false;
     return;
   }
   if (!/^\d{6}$/.test(codigo)) {
-    errorBox.textContent = 'El código debe tener 6 dígitos.';
+    errorBox.textContent = t('login.codigo6Digitos');
     errorBox.hidden = false;
     return;
   }
 
   if (!nuevaPassword) {
-    errorBox.textContent = 'Escribe tu nueva contraseña.';
+    errorBox.textContent = t('login.escribeNuevaPassword');
     errorBox.hidden = false;
     return;
   }
   if (!confirmarPassword) {
-    errorBox.textContent = 'Confirma tu nueva contraseña.';
+    errorBox.textContent = t('login.confirmaPassword');
     errorBox.hidden = false;
     return;
   }
@@ -217,14 +217,14 @@ document.getElementById('form-restablecer').addEventListener('submit', async e =
   }
 
   if (nuevaPassword !== confirmarPassword) {
-    errorBox.textContent = 'Las dos contraseñas no coinciden.';
+    errorBox.textContent = t('login.passwordsNoCoinciden');
     errorBox.hidden = false;
     return;
   }
 
   const btn = document.getElementById('btn-restablecer');
   btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader" class="icon-btn login-spin"></i> Verificando...';
+  btn.innerHTML = `<i data-lucide="loader" class="icon-btn login-spin"></i> ${t('login.verificando')}`;
   lucide.createIcons();
 
   try {
@@ -236,7 +236,7 @@ document.getElementById('form-restablecer').addEventListener('submit', async e =
     const data = await res.json();
 
     if (!res.ok) {
-      errorBox.textContent = data.error || 'Código inválido o expirado.';
+      errorBox.textContent = data.error || t('login.codigoInvalido');
       errorBox.hidden = false;
       return;
     }
@@ -250,11 +250,11 @@ document.getElementById('form-restablecer').addEventListener('submit', async e =
 
   } catch (err) {
     console.error('Error al restablecer contraseña:', err);
-    errorBox.textContent = 'Sin conexión con el servidor. Intenta de nuevo.';
+    errorBox.textContent = t('login.sinConexionIntenta');
     errorBox.hidden = false;
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="check" class="icon-btn"></i> Cambiar contraseña';
+    btn.innerHTML = `<i data-lucide="check" class="icon-btn"></i> ${t('login.cambiarContrasena')}`;
     lucide.createIcons();
   }
 });

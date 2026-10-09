@@ -40,7 +40,7 @@ async function cargarUsuarios() {
     pintarUsuarios();
   } catch (err) {
     console.error('Error al cargar usuarios:', err);
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No se pudo cargar la lista de usuarios.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">${t('usuarios.errorCargar')}</td></tr>`;
   }
 }
 
@@ -48,7 +48,7 @@ function pintarUsuarios() {
   const tbody = document.getElementById('usuarios-body');
 
   if (usuariosCache.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No hay usuarios registrados.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">${t('usuarios.noHayUsuarios')}</td></tr>`;
     return;
   }
 
@@ -58,21 +58,21 @@ function pintarUsuarios() {
       <td>${escaparHTML(u.nombre)}</td>
       <td><span class="badge-rol ${u.rol}">${etiquetaRol(u.rol)}</span></td>
       <td>${pintarPermisosMini(u)}</td>
-      <td><span class="badge-estado ${u.activo ? 'activo' : 'inactivo'}">${u.activo ? 'Activo' : 'Inactivo'}</span></td>
+      <td><span class="badge-estado ${u.activo ? 'activo' : 'inactivo'}">${u.activo ? t('usuarios.activo') : t('usuarios.inactivo')}</span></td>
       <td style="font-size:0.72rem;color:var(--text-dim)">${formatearFecha(u.ultimo_login)}</td>
       <td>
         ${u.rol === 'superadmin' ? '' : `
           <div class="acciones-fila">
-            <button class="btn-icono" title="Editar" onclick="abrirModalEditar(${u.id})">
+            <button class="btn-icono" title="${t('usuarios.editar')}" onclick="abrirModalEditar(${u.id})">
               <i data-lucide="pencil"></i>
             </button>
-            <button class="btn-icono" title="Cambiar contraseña" onclick="cambiarPassword(${u.id}, '${escaparHTML(u.username)}')">
+            <button class="btn-icono" title="${t('usuarios.cambiarPasswordTitle')}" onclick="cambiarPassword(${u.id}, '${escaparHTML(u.username)}')">
               <i data-lucide="key-round"></i>
             </button>
-            <button class="btn-icono" title="${u.activo ? 'Desactivar' : 'Activar'}" onclick="toggleEstadoUsuario(${u.id}, '${escaparHTML(u.username)}', ${u.activo ? 'true' : 'false'})">
+            <button class="btn-icono" title="${u.activo ? t('usuarios.desactivar') : t('usuarios.activar')}" onclick="toggleEstadoUsuario(${u.id}, '${escaparHTML(u.username)}', ${u.activo ? 'true' : 'false'})">
               <i data-lucide="${u.activo ? 'user-x' : 'user-check'}"></i>
             </button>
-            <button class="btn-icono peligro" title="Eliminar definitivamente" onclick="eliminarUsuarioDefinitivo(${u.id}, '${escaparHTML(u.username)}')">
+            <button class="btn-icono peligro" title="${t('usuarios.eliminarDefinitivamente')}" onclick="eliminarUsuarioDefinitivo(${u.id}, '${escaparHTML(u.username)}')">
               <i data-lucide="trash-2"></i>
             </button>
           </div>
@@ -85,8 +85,8 @@ function pintarUsuarios() {
 }
 
 function pintarPermisosMini(u) {
-  if (u.rol === 'superadmin') return '<span class="permisos-mini">Todos (súper admin)</span>';
-  if (!u.permisos || u.permisos.length === 0) return '<span class="permisos-mini sin-permisos">Ninguno</span>';
+  if (u.rol === 'superadmin') return `<span class="permisos-mini">${t('usuarios.todosSuperAdmin')}</span>`;
+  if (!u.permisos || u.permisos.length === 0) return `<span class="permisos-mini sin-permisos">${t('usuarios.ningunPermiso')}</span>`;
   const nombres = u.permisos.map(clave => {
     const p = permisosDisponibles.find(p => p.clave === clave);
     return p ? p.nombre : clave;
@@ -95,8 +95,8 @@ function pintarPermisosMini(u) {
 }
 
 function formatearFecha(fecha) {
-  if (!fecha) return 'Nunca';
-  return new Date(fecha).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+  if (!fecha) return t('usuarios.nunca');
+  return new Date(fecha).toLocaleString(obtenerIdioma() === 'en' ? 'en-US' : 'es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 function escaparHTML(texto) {
@@ -107,7 +107,7 @@ function escaparHTML(texto) {
 
 // ── Modal: crear usuario ──────────────────────────────────────────────────────
 function abrirModalCrear() {
-  document.getElementById('modal-titulo').textContent = 'Crear usuario';
+  document.getElementById('modal-titulo').textContent = t('usuarios.crearTitulo');
   document.getElementById('usuario-id').value       = '';
   document.getElementById('input-username').value   = '';
   document.getElementById('input-username').disabled = false;
@@ -129,7 +129,7 @@ function abrirModalEditar(id) {
   const u = usuariosCache.find(u => u.id === id);
   if (!u) return;
 
-  document.getElementById('modal-titulo').textContent = `Editar ${u.nombre}`;
+  document.getElementById('modal-titulo').textContent = t('usuarios.editarTitulo', { nombre: u.nombre });
   document.getElementById('usuario-id').value        = u.id;
 
   const inputUsername = document.getElementById('input-username');
@@ -140,7 +140,7 @@ function abrirModalEditar(id) {
   const btnDesbloquear = document.getElementById('btn-desbloquear-username');
   btnDesbloquear.style.display = '';
   btnDesbloquear.innerHTML     = '<i data-lucide="lock"></i>';
-  btnDesbloquear.title         = 'Cambiar nombre de usuario';
+  btnDesbloquear.title         = t('usuarios.cambiarUsername');
 
   document.getElementById('input-nombre').value       = u.nombre;
   document.getElementById('input-rol').value          = u.rol;
@@ -164,12 +164,12 @@ function toggleDesbloquearUsername() {
   if (estabaBloqueado) {
     input.focus();
     btn.innerHTML = '<i data-lucide="lock-open"></i>';
-    btn.title     = 'Bloquear de nuevo (descartar el cambio)';
+    btn.title     = t('usuarios.bloquearDeNuevo');
   } else {
     // Se vuelve a bloquear: se descarta cualquier cambio a medio escribir
     input.value   = input.dataset.original || input.value;
     btn.innerHTML = '<i data-lucide="lock"></i>';
-    btn.title     = 'Cambiar nombre de usuario';
+    btn.title     = t('usuarios.cambiarUsername');
   }
 
   if (window.lucide) lucide.createIcons();
@@ -184,7 +184,7 @@ function pintarChecksPermisos(permisosActuales) {
   const panel = document.getElementById('permisos-panel');
 
   if (permisosDisponibles.length === 0) {
-    panel.innerHTML = '<p class="form-nota" style="margin:0">No hay permisos configurados todavía.</p>';
+    panel.innerHTML = `<p class="form-nota" style="margin:0">${t('usuarios.noHayPermisosConfigurados')}</p>`;
     actualizarResumenPermisos();
     return;
   }
@@ -209,14 +209,14 @@ function actualizarResumenPermisos() {
   const resumen = document.getElementById('permisos-resumen');
 
   if (seleccionados.length === 0) {
-    resumen.textContent = 'Ningún permiso seleccionado';
+    resumen.textContent = t('usuarios.ningunPermisoSel');
     resumen.classList.remove('con-seleccion');
   } else if (seleccionados.length === 1) {
     const p = permisosDisponibles.find(p => p.clave === seleccionados[0]);
     resumen.textContent = p ? p.nombre : seleccionados[0];
     resumen.classList.add('con-seleccion');
   } else {
-    resumen.textContent = `${seleccionados.length} permisos seleccionados`;
+    resumen.textContent = t('usuarios.permisosSeleccionados', { count: seleccionados.length });
     resumen.classList.add('con-seleccion');
   }
 }
@@ -286,7 +286,7 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
 
   const nombre = document.getElementById('input-nombre').value.trim();
   if (!nombre) {
-    mostrarErrorModal('El nombre completo es obligatorio.');
+    mostrarErrorModal(t('usuarios.nombreObligatorio'));
     document.getElementById('input-nombre').focus();
     return;
   }
@@ -300,7 +300,7 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
   if (!id) {
     const username = document.getElementById('input-username').value.trim();
     if (!username) {
-      mostrarErrorModal('El usuario es obligatorio.');
+      mostrarErrorModal(t('usuarios.usuarioObligatorio'));
       document.getElementById('input-username').focus();
       return;
     }
@@ -321,13 +321,13 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
 
     if (!inputUsername.disabled && usernameNuevo !== usernameOriginal) {
       if (!usernameNuevo) {
-        mostrarErrorModal('El usuario no puede quedar vacío.');
+        mostrarErrorModal(t('usuarios.usuarioVacio'));
         return;
       }
       const confirmado = await confirmarAccion({
-        titulo: '¿Cambiar el nombre de usuario?',
-        mensaje: `Vas a cambiar el usuario de "${usernameOriginal}" a "${usernameNuevo}". Deberá iniciar sesión con el usuario nuevo la próxima vez.`,
-        textoConfirmar: 'Cambiar usuario',
+        titulo: t('usuarios.cambiarUsernameTitulo'),
+        mensaje: t('usuarios.cambiarUsernameMensaje', { anterior: usernameOriginal, nuevo: usernameNuevo }),
+        textoConfirmar: t('usuarios.cambiarUsuarioBtn'),
         iconoConfirmar: 'lock-open',
         peligro: true
       });
@@ -337,7 +337,7 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
   }
 
   btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader" class="icon-btn login-spin"></i> Guardando...';
+  btn.innerHTML = `<i data-lucide="loader" class="icon-btn login-spin"></i> ${t('usuarios.guardando')}`;
   lucide.createIcons();
 
   try {
@@ -349,20 +349,20 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
     const data = await res.json();
 
     if (!res.ok) {
-      mostrarErrorModal(data.error || 'No se pudo guardar el usuario.');
+      mostrarErrorModal(data.error || t('usuarios.errorGuardarUsuario'));
       return;
     }
 
-    notyf.success(id ? 'Usuario actualizado.' : 'Usuario creado correctamente.');
+    notyf.success(id ? t('usuarios.actualizado') : t('usuarios.creado'));
     cerrarModal();
     cargarUsuarios();
 
   } catch (err) {
     console.error('Error al guardar usuario:', err);
-    mostrarErrorModal('Sin conexión con el servidor. Intenta de nuevo.');
+    mostrarErrorModal(t('usuarios.sinConexionIntenta'));
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="check" class="icon-btn"></i> Guardar';
+    btn.innerHTML = `<i data-lucide="check" class="icon-btn"></i> ${t('usuarios.guardar')}`;
     lucide.createIcons();
   }
 });
@@ -370,17 +370,17 @@ document.getElementById('form-usuario').addEventListener('submit', async e => {
 // ── Cambiar contraseña (acción aparte) ────────────────────────────────────────
 async function cambiarPassword(id, username) {
   const password = await pedirPassword({
-    titulo: `Nueva contraseña para ${username}`,
-    textoConfirmar: 'Cambiar',
+    titulo: t('usuarios.nuevaPasswordPara', { username }),
+    textoConfirmar: t('usuarios.cambiar'),
     iconoConfirmar: 'key-round'
   });
 
   if (!password) return;
 
   const confirmado = await confirmarAccion({
-    titulo: '¿Confirmar cambio de contraseña?',
-    mensaje: `Vas a cambiar la contraseña de ${username}. Deberá usar la nueva contraseña la próxima vez que inicie sesión.`,
-    textoConfirmar: 'Cambiar contraseña',
+    titulo: t('usuarios.confirmarCambioPassTitulo'),
+    mensaje: t('usuarios.confirmarCambioPassMensaje', { username }),
+    textoConfirmar: t('usuarios.cambiarContrasena'),
     iconoConfirmar: 'key-round',
     peligro: true,
     ajustado: true
@@ -396,25 +396,23 @@ async function cambiarPassword(id, username) {
     const data = await res.json();
 
     if (!res.ok) {
-      notyf.error(data.error || 'No se pudo cambiar la contraseña.');
+      notyf.error(data.error || t('usuarios.errorCambiarPassword'));
       return;
     }
-    notyf.success(`Contraseña de ${username} actualizada.`);
+    notyf.success(t('usuarios.passwordActualizada', { username }));
 
   } catch (err) {
     console.error('Error al cambiar contraseña:', err);
-    notyf.error('Sin conexión con el servidor.');
+    notyf.error(t('usuarios.sinConexion'));
   }
 }
 
 // ── Activar / desactivar (reversible — no borra nada) ─────────────────────────
 async function toggleEstadoUsuario(id, username, activoActual) {
   const ok = await confirmarAccion({
-    titulo: activoActual ? `¿Desactivar a ${username}?` : `¿Activar a ${username}?`,
-    mensaje: activoActual
-      ? 'No podrá iniciar sesión hasta que lo actives de nuevo. No se borra su historial ni sus datos.'
-      : 'Podrá volver a iniciar sesión normalmente, con los mismos permisos que tenía.',
-    textoConfirmar: activoActual ? 'Sí, desactivar' : 'Sí, activar',
+    titulo: activoActual ? t('usuarios.desactivarTitulo', { username }) : t('usuarios.activarTitulo', { username }),
+    mensaje: activoActual ? t('usuarios.desactivarMensaje') : t('usuarios.activarMensaje'),
+    textoConfirmar: activoActual ? t('usuarios.siDesactivar') : t('usuarios.siActivar'),
     iconoConfirmar: 'check',
     peligro: activoActual
   });
@@ -430,15 +428,15 @@ async function toggleEstadoUsuario(id, username, activoActual) {
     const data = await res.json();
 
     if (!res.ok) {
-      notyf.error(data.error || 'No se pudo actualizar el estado.');
+      notyf.error(data.error || t('usuarios.errorEstado'));
       return;
     }
-    notyf.success(`${username} fue ${activoActual ? 'desactivado' : 'activado'}.`);
+    notyf.success(activoActual ? t('usuarios.fueDesactivado', { username }) : t('usuarios.fueActivado', { username }));
     cargarUsuarios();
 
   } catch (err) {
     console.error('Error al cambiar el estado:', err);
-    notyf.error('Sin conexión con el servidor.');
+    notyf.error(t('usuarios.sinConexion'));
   }
 }
 
@@ -447,9 +445,9 @@ async function toggleEstadoUsuario(id, username, activoActual) {
 // hospital. Si solo está de vacaciones o con licencia, usa "Desactivar".
 async function eliminarUsuarioDefinitivo(id, username) {
   const ok = await confirmarAccion({
-    titulo: `¿Eliminar a ${username} permanentemente?`,
-    mensaje: 'Esta acción no se puede deshacer — se borra la cuenta por completo. Si solo está de vacaciones o con licencia, usa "Desactivar" en su lugar.',
-    textoConfirmar: 'Eliminar',
+    titulo: t('usuarios.eliminarTitulo', { username }),
+    mensaje: t('usuarios.eliminarMensaje'),
+    textoConfirmar: t('usuarios.eliminar'),
     iconoConfirmar: 'trash-2',
     peligro: true
   });
@@ -461,21 +459,25 @@ async function eliminarUsuarioDefinitivo(id, username) {
     const data = await res.json();
 
     if (!res.ok) {
-      notyf.error(data.error || 'No se pudo eliminar el usuario.');
+      notyf.error(data.error || t('usuarios.errorEliminar'));
       return;
     }
-    notyf.success(`${username} fue eliminado permanentemente.`);
+    notyf.success(t('usuarios.fueEliminado', { username }));
     cargarUsuarios();
 
   } catch (err) {
     console.error('Error al eliminar usuario:', err);
-    notyf.error('Sin conexión con el servidor.');
+    notyf.error(t('usuarios.sinConexion'));
   }
 }
 
 // ── Arranque ───────────────────────────────────────────────────────────────────
 mostrarUsuarioActual();
 cargarPermisosDisponibles().then(cargarUsuarios);
+
+if (typeof registrarRepintado === 'function') {
+  registrarRepintado(() => pintarUsuarios());
+}
 
 function mostrarUsuarioActual() {
   const usuario = obtenerUsuario();

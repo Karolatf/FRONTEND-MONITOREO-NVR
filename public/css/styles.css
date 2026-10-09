@@ -34,6 +34,22 @@ html[data-tema="claro"] {
   --border:   #dde1e6;
   --text:     #1c2027;
   --text-dim: #667085;
+
+  /* Los acentos de color se oscurecen un poco SOLO en este tema: el mismo
+     dorado que se ve vibrante sobre fondo oscuro (contraste 8.2:1) cae a
+     apenas 2.4:1 sobre blanco — muy por debajo del 4.5:1 que pide WCAG AA
+     para texto, y se ve lavado/difícil de leer. Se mantiene el mismo matiz
+     e identidad, solo más oscuros para que títulos, badges y estados
+     sigan siendo legibles sobre fondo claro. Verificado con la fórmula de
+     contraste relativo de WCAG antes de elegir estos valores. */
+  --amber:     #966b09;
+  --amber-dim: #7d5a07;
+  --green:     #0f7a38;
+  --green-dim: #0c6530;
+  --red:       #d32f2f;
+  --red-dim:   #b71c1c;
+  --blue:      #1d5fd1;
+  --purple:    #8b2fd6;
 }
 
 body {

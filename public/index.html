@@ -69,29 +69,29 @@
     <div class="stat-card verde">
       <i data-lucide="wifi" class="icon-stat"></i>
       <div class="stat-num" id="stat-activos">—</div>
-      <div class="stat-label">NVRs Respondiendo</div>
+      <div class="stat-label" data-i18n="dashboard.nvrsRespondiendo">NVRs Respondiendo</div>
     </div>
     <div class="stat-card rojo">
       <i data-lucide="wifi-off" class="icon-stat"></i>
       <div class="stat-num" id="stat-nvr-caidos">—</div>
-      <div class="stat-label">NVRs Caídos</div>
+      <div class="stat-label" data-i18n="dashboard.nvrsCaidos">NVRs Caídos</div>
     </div>
     <div class="stat-card morado">
       <i data-lucide="video-off" class="icon-stat"></i>
       <div class="stat-num" id="stat-cam-caidas">—</div>
-      <div class="stat-label">Cámaras Caídas</div>
+      <div class="stat-label" data-i18n="dashboard.camarasCaidas">Cámaras Caídas</div>
     </div>
     <div class="stat-card azul">
       <i data-lucide="server" class="icon-stat"></i>
       <div class="stat-num" id="stat-total">—</div>
-      <div class="stat-label">Dispositivos Registrados</div>
+      <div class="stat-label" data-i18n="dashboard.dispositivosRegistrados">Dispositivos Registrados</div>
     </div>
   </section>
 
   <main>
     <section class="nvr-section">
       <div class="section-header">
-        <h2><i data-lucide="shield" class="icon-section"></i> Seguridad Física</h2>
+        <h2><i data-lucide="shield" class="icon-section"></i> <span data-i18n="dashboard.seguridadFisica">Seguridad Física</span></h2>
         <span class="section-count" id="count-fisica">—</span>
       </div>
       <div class="nvr-grid" id="grid-fisica"></div>
@@ -99,7 +99,7 @@
 
     <section class="nvr-section">
       <div class="section-header">
-        <h2><i data-lucide="heart" class="icon-section"></i> Seguridad Paciente</h2>
+        <h2><i data-lucide="heart" class="icon-section"></i> <span data-i18n="dashboard.seguridadPaciente">Seguridad Paciente</span></h2>
         <span class="section-count" id="count-paciente">—</span>
       </div>
       <div class="nvr-grid" id="grid-paciente"></div>
@@ -124,7 +124,7 @@
 
   <section class="historial-section">
     <div class="section-header">
-      <h2><i data-lucide="clock" class="icon-section"></i> Historial de Eventos</h2>
+      <h2><i data-lucide="clock" class="icon-section"></i> <span data-i18n="dashboard.historialEventos">Historial de Eventos</span></h2>
       <span class="section-count" id="count-historial">—</span>
     </div>
 
@@ -134,48 +134,49 @@
         type="text"
         id="filtro-ip"
         class="filtro-input"
+        data-i18n-placeholder="dashboard.buscarPlaceholder"
         placeholder="Buscar por IP o nombre..."
         oninput="cargarHistorial()">
 
       <div class="filtro-item-grupo">
-        <label class="filtro-label">Fechas</label>
+        <label class="filtro-label" data-i18n="dashboard.fechas">Fechas</label>
         <input type="text" id="filtro-rango" class="filtro-rango"
-          placeholder="Seleccionar rango..." readonly>
+          data-i18n-placeholder="dashboard.seleccionarRango" placeholder="Seleccionar rango..." readonly>
       </div>
 
       <div class="filtro-item-grupo">
-        <label class="filtro-label">Hora</label>
+        <label class="filtro-label" data-i18n="dashboard.hora">Hora</label>
         <select id="filtro-hora" class="filtro-select" onchange="cargarHistorial()">
-          <option value="">Todas</option>
+          <option value="" data-i18n="dashboard.todas">Todas</option>
         </select>
       </div>
 
       <div class="filtro-item-grupo">
-        <label class="filtro-label">Estado</label>
+        <label class="filtro-label" data-i18n="dashboard.estado">Estado</label>
         <select id="filtro-estado" class="filtro-select" onchange="cargarHistorial()">
-          <option value="">Todos</option>
-          <option value="caida">Caída</option>
-          <option value="recuperacion">Recuperado</option>
+          <option value="" data-i18n="dashboard.todos">Todos</option>
+          <option value="caida" data-i18n="dashboard.caida">Caída</option>
+          <option value="recuperacion" data-i18n="dashboard.recuperado">Recuperado</option>
         </select>
       </div>
 
       <div class="filtro-item-grupo">
-        <label class="filtro-label">Tipo</label>
+        <label class="filtro-label" data-i18n="dashboard.tipo">Tipo</label>
         <select id="filtro-tipo" class="filtro-select" onchange="cargarHistorial()">
-          <option value="">Todos</option>
-          <option value="nvr">NVR</option>
-          <option value="camara">Cámara</option>
+          <option value="" data-i18n="dashboard.todos">Todos</option>
+          <option value="nvr" data-i18n="dashboard.nvr">NVR</option>
+          <option value="camara" data-i18n="dashboard.camara">Cámara</option>
         </select>
       </div>
 
       <button class="btn-limpiar" onclick="limpiarFiltros()">
         <i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"></i>
-        Limpiar
+        <span data-i18n="dashboard.limpiar">Limpiar</span>
       </button>
 
       <div class="exportar-wrapper" id="exportar-wrapper">
         <button class="btn-exportar" id="btn-exportar" onclick="toggleMenuExportar()">
-          <i data-lucide="download" class="icon-btn"></i> Exportar
+          <i data-lucide="download" class="icon-btn"></i> <span data-i18n="dashboard.exportar">Exportar</span>
           <i data-lucide="chevron-down" style="width:13px;height:13px;margin-left:2px"></i>
         </button>
         <div class="menu-exportar" id="menu-exportar">
@@ -194,16 +195,16 @@
       <table class="historial-tabla">
         <thead>
           <tr>
-            <th>Fecha / Hora</th>
-            <th>Dispositivo</th>
-            <th>IP</th>
-            <th>NVR</th>
-            <th>Tipo</th>
-            <th>Estado</th>
+            <th data-i18n="dashboard.thFechaHora">Fecha / Hora</th>
+            <th data-i18n="dashboard.thDispositivo">Dispositivo</th>
+            <th data-i18n="dashboard.thIP">IP</th>
+            <th data-i18n="dashboard.thNVR">NVR</th>
+            <th data-i18n="dashboard.thTipo">Tipo</th>
+            <th data-i18n="dashboard.thEstado">Estado</th>
           </tr>
         </thead>
         <tbody id="historial-body">
-          <tr><td colspan="6" class="empty-msg">Cargando historial...</td></tr>
+          <tr><td colspan="6" class="empty-msg" data-i18n="dashboard.cargandoHistorial">Cargando historial...</td></tr>
         </tbody>
       </table>
     </div>

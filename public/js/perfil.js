@@ -10,12 +10,12 @@ let yaTieneCorreo = false;
 let catalogoPermisos = [];
 
 function etiquetaRolBadge(rol) {
-  return { superadmin: 'Súper Administrador', analista: 'Analista', visualizacion: 'Visualización' }[rol] || rol;
+  return t(`roles.${rol}`) || rol;
 }
 
 function actualizarTextoBoton() {
   document.getElementById('btn-guardar-perfil-texto').textContent =
-    yaTieneCorreo ? 'Actualizar correo' : 'Guardar correo';
+    yaTieneCorreo ? t('perfil.actualizarCorreo') : t('perfil.guardarCorreo');
 }
 
 async function cargarCatalogoPermisos() {
@@ -28,8 +28,8 @@ async function cargarCatalogoPermisos() {
 }
 
 function textoPermisos(rol, permisos) {
-  if (rol === 'superadmin') return 'Todos (súper administrador)';
-  if (!permisos || permisos.length === 0) return 'Ninguno — solo puede ver el dashboard';
+  if (rol === 'superadmin') return t('perfil.todosSuperAdmin');
+  if (!permisos || permisos.length === 0) return t('perfil.ningunPermiso');
   return permisos
     .map(clave => catalogoPermisos.find(p => p.clave === clave)?.nombre || clave)
     .join(', ');
@@ -49,7 +49,7 @@ async function cargarPerfil() {
 
     document.getElementById('info-rol').textContent      = etiquetaRolBadge(data.rol);
     document.getElementById('info-permisos').textContent = textoPermisos(data.rol, data.permisos);
-    document.getElementById('info-correo').textContent   = data.email_personal || 'Sin registrar';
+    document.getElementById('info-correo').textContent   = data.email_personal || t('perfil.sinRegistrar');
 
     const badge = document.getElementById('perfil-rol-badge');
     badge.textContent = etiquetaRolBadge(data.rol);
@@ -57,7 +57,7 @@ async function cargarPerfil() {
 
   } catch (err) {
     console.error('Error al cargar el perfil:', err);
-    notyf.error('No se pudo cargar tu perfil.');
+    notyf.error(t('perfil.errorCargarPerfil'));
   }
 }
 
@@ -77,14 +77,14 @@ document.getElementById('form-perfil').addEventListener('submit', async e => {
   // algo, debe verse como un correo real — sin esto, el navegador mostraba
   // su propio mensaje nativo ("Incluye una arroba...") en vez del nuestro.
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    mostrarErrorPerfil('Escribe un correo válido, por ejemplo: nombre@dominio.com');
+    mostrarErrorPerfil(t('perfil.correoValido'));
     return;
   }
 
   const btn   = document.getElementById('btn-guardar-perfil');
 
   btn.disabled = true;
-  document.getElementById('btn-guardar-perfil-texto').textContent = 'Guardando...';
+  document.getElementById('btn-guardar-perfil-texto').textContent = t('perfil.guardando');
 
   try {
     const res  = await authFetch('/api/perfil/email', {
@@ -95,18 +95,18 @@ document.getElementById('form-perfil').addEventListener('submit', async e => {
     const data = await res.json();
 
     if (!res.ok) {
-      mostrarErrorPerfil(data.error || 'No se pudo guardar el correo.');
+      mostrarErrorPerfil(data.error || t('perfil.errorGuardarCorreo'));
       return;
     }
 
     // Actualiza el estado en el momento, sin recargar la página
     yaTieneCorreo = !!email;
-    document.getElementById('info-correo').textContent = email || 'Sin registrar';
-    notyf.success(yaTieneCorreo ? 'Correo actualizado.' : 'Correo guardado.');
+    document.getElementById('info-correo').textContent = email || t('perfil.sinRegistrar');
+    notyf.success(yaTieneCorreo ? t('perfil.correoActualizado') : t('perfil.correoGuardado'));
 
   } catch (err) {
     console.error('Error al guardar el correo:', err);
-    mostrarErrorPerfil('Sin conexión con el servidor. Intenta de nuevo.');
+    mostrarErrorPerfil(t('perfil.sinConexionIntenta'));
   } finally {
     btn.disabled = false;
     actualizarTextoBoton();
@@ -185,7 +185,7 @@ function inicializarTarjetaSegunRol() {
 function pintarPuntoEstadoServidor(estado) {
   // estado: 'en_linea' | 'iniciando' | 'fuera_de_linea'
   const clases  = { en_linea: 'verde', iniciando: 'amarillo', fuera_de_linea: 'rojo' };
-  const textos  = { en_linea: 'En Línea', iniciando: 'Iniciando...', fuera_de_linea: 'Fuera de Línea' };
+  const textos  = { en_linea: t('perfil.enLinea'), iniciando: t('perfil.iniciando'), fuera_de_linea: t('perfil.fueraLinea') };
   const el = document.getElementById('vivo-estado-servidor');
   el.innerHTML = `<span class="dot ${clases[estado]}"></span> ${textos[estado]}`;
 }
@@ -232,7 +232,7 @@ async function cargarEstadoVivo() {
     for (const lista of Object.values(data)) {
       if (Array.isArray(lista)) nvrsActivos += lista.filter(n => n.activo).length;
     }
-    document.getElementById('vivo-nvrs').textContent = `${nvrsActivos} Activos`;
+    document.getElementById('vivo-nvrs').textContent = `${nvrsActivos} ${t('perfil.activos')}`;
 
   } catch (err) {
     console.error('Error al consultar el estado del monitor:', err);
@@ -258,13 +258,13 @@ async function cargarHistorialLogin() {
     const data = await res.json();
 
     if (!res.ok) {
-      cuerpo.innerHTML = `<tr><td colspan="3" class="perfil-tabla-vacio">${data.error || 'No se pudo cargar el historial.'}</td></tr>`;
+      cuerpo.innerHTML = `<tr><td colspan="3" class="perfil-tabla-vacio">${data.error || t('perfil.errorHistorial')}</td></tr>`;
       return;
     }
 
     const historial = data.historial || [];
     if (historial.length === 0) {
-      cuerpo.innerHTML = '<tr><td colspan="3" class="perfil-tabla-vacio">Todavía no hay inicios de sesión registrados.</td></tr>';
+      cuerpo.innerHTML = `<tr><td colspan="3" class="perfil-tabla-vacio">${t('perfil.noHayHistorial')}</td></tr>`;
       return;
     }
 
@@ -278,7 +278,7 @@ async function cargarHistorialLogin() {
 
   } catch (err) {
     console.error('Error al cargar el historial de inicios de sesión:', err);
-    cuerpo.innerHTML = '<tr><td colspan="3" class="perfil-tabla-vacio">Sin conexión con el servidor.</td></tr>';
+    cuerpo.innerHTML = `<tr><td colspan="3" class="perfil-tabla-vacio">${t('perfil.sinConexion')}</td></tr>`;
   }
 }
 
@@ -289,6 +289,18 @@ inicializarSelectorTema();
 inicializarSelectorIdioma();
 inicializarInterruptores();
 inicializarTarjetaSegunRol();
+
+if (typeof registrarRepintado === 'function') {
+  registrarRepintado(() => {
+    cargarPerfil();
+    actualizarTextoBoton();
+    const usuario = obtenerUsuario();
+    if (usuario) {
+      if (usuario.rol === 'superadmin') cargarHistorialLogin();
+      else { pintarTiempoSesion(); cargarEstadoVivo(); }
+    }
+  });
+}
 
 function mostrarUsuarioActual() {
   const usuario = obtenerUsuario();

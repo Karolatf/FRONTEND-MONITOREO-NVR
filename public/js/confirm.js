@@ -17,19 +17,19 @@
     <div class="generico-cuerpo">
       <p id="generico-mensaje" class="generico-mensaje"></p>
       <div id="generico-input-wrap" class="login-field" hidden>
-        <label for="generico-input">Nueva contraseña</label>
-        <input type="password" id="generico-input" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+        <label for="generico-input" id="generico-input-label"></label>
+        <input type="password" id="generico-input" autocomplete="new-password">
         <div id="generico-fuerza" class="fuerza-password" hidden></div>
       </div>
       <div id="generico-confirmar-wrap" class="login-field" hidden>
-        <label for="generico-input-confirmar">Confirmar contraseña</label>
-        <input type="password" id="generico-input-confirmar" autocomplete="new-password" placeholder="Repite la contraseña">
+        <label for="generico-input-confirmar" id="generico-confirmar-label"></label>
+        <input type="password" id="generico-input-confirmar" autocomplete="new-password">
       </div>
       <div id="generico-error" class="login-error" hidden></div>
     </div>
     <div class="generico-acciones">
-      <button type="button" class="btn-secundario" id="generico-cancelar">Cancelar</button>
-      <button type="button" class="login-submit" id="generico-confirmar">Confirmar</button>
+      <button type="button" class="btn-secundario" id="generico-cancelar"></button>
+      <button type="button" class="login-submit" id="generico-confirmar"></button>
     </div>
   </div>
 </div>`;
@@ -43,6 +43,17 @@
   const btnX           = document.getElementById('generico-cerrar-x');
   const errorBox       = document.getElementById('generico-error');
   const fuerza         = document.getElementById('generico-fuerza');
+
+  // Textos fijos del modal (etiquetas, placeholders, botón Cancelar) — se
+  // pintan al abrir cada vez, para que respeten el idioma actual aunque se
+  // haya cambiado desde la última vez que se usó este modal.
+  function pintarTextosFijos() {
+    document.getElementById('generico-input-label').textContent      = t('confirm.nuevaPassword');
+    document.getElementById('generico-confirmar-label').textContent  = t('confirm.confirmarPasswordLabel');
+    input.placeholder          = t('confirm.passwordPlaceholder');
+    inputConfirmar.placeholder = t('confirm.repetirPlaceholder');
+    btnCancel.textContent      = t('confirm.cancelar');
+  }
 
   function cerrar(valor) {
     overlay.hidden = true;
@@ -81,7 +92,7 @@
         return;
       }
       if (valor !== inputConfirmar.value) {
-        errorBox.textContent = 'Las contraseñas no coinciden.';
+        errorBox.textContent = t('confirm.passwordsNoCoinciden');
         errorBox.hidden = false;
         inputConfirmar.focus();
         return;
@@ -91,21 +102,26 @@
       cerrar(true);
     }
   });
+
+  window._pintarTextosFijosGenerico = pintarTextosFijos;
 })();
 
 let _genericoResolver  = null;
 let _genericoConInput  = false;
 
-function _abrirGenerico({ titulo, mensaje, textoConfirmar = 'Confirmar', iconoConfirmar = null, peligro = false, conInput = false, ajustado = false }) {
+function _abrirGenerico({ titulo, mensaje, textoConfirmar, iconoConfirmar = null, peligro = false, conInput = false, ajustado = false }) {
+  if (window._pintarTextosFijosGenerico) window._pintarTextosFijosGenerico();
+
   document.getElementById('generico-titulo').textContent = titulo;
   const mensajeEl = document.getElementById('generico-mensaje');
   mensajeEl.textContent = mensaje || '';
   mensajeEl.hidden = !mensaje; // Sin mensaje, no deja hueco: el bloque completo se retira
 
   const btnOk = document.getElementById('generico-confirmar');
+  const textoBtn = textoConfirmar || t('confirm.confirmarDefault');
   btnOk.innerHTML = iconoConfirmar
-    ? `<i data-lucide="${iconoConfirmar}"></i><span>${textoConfirmar}</span>`
-    : `<span>${textoConfirmar}</span>`;
+    ? `<i data-lucide="${iconoConfirmar}"></i><span>${textoBtn}</span>`
+    : `<span>${textoBtn}</span>`;
   btnOk.classList.toggle('btn-peligro-solido', peligro);
   btnOk.classList.toggle('generico-btn-ajustado', ajustado);
 
@@ -147,9 +163,9 @@ async function pedirPassword(opciones) {
 // Reemplaza el cerrarSesion() directo de los botones de logout.
 async function confirmarCerrarSesion() {
   const ok = await confirmarAccion({
-    titulo: '¿Cerrar sesión?',
-    mensaje: 'Vas a salir del sistema y vas a necesitar volver a iniciar sesión para entrar de nuevo.',
-    textoConfirmar: 'Sí, cerrar sesión',
+    titulo: t('confirm.cerrarSesionTitulo'),
+    mensaje: t('confirm.cerrarSesionMensaje'),
+    textoConfirmar: t('confirm.siCerrarSesion'),
     iconoConfirmar: 'log-out'
   });
   if (ok) cerrarSesion();

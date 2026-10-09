@@ -10,7 +10,7 @@ function inicializarRangoPicker() {
     dateFormat:     'Y-m-d',
     altInput:       true,
     altFormat:      'd/m/Y',
-    locale:         'es',
+    locale:         obtenerIdioma() === 'es' ? 'es' : 'default',
     firstDayOfWeek: 1,
     allowInput:     false,
     disableMobile:  true,
@@ -58,7 +58,7 @@ async function fetchStatus() {
 
     if (data.inicializando) {
       mostrarInicializando();
-      actualizarTimestamp('Iniciando primer chequeo...');
+      actualizarTimestamp(t('dashboard.iniciandoChequeo'));
       return;
     }
 
@@ -71,7 +71,7 @@ async function fetchStatus() {
     actualizarTimestamp();
   } catch (err) {
     console.error('Error al consultar la API:', err);
-    actualizarTimestamp('Sin conexion con el servidor');
+    actualizarTimestamp(t('dashboard.sinConexionServidor'));
   }
 }
 
@@ -84,7 +84,7 @@ async function exportarHistorial(formato) {
   const btn = document.getElementById('btn-exportar');
   const textoOriginal = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '<i data-lucide="loader" class="icon-btn login-spin"></i> Generando...';
+  btn.innerHTML = `<i data-lucide="loader" class="icon-btn login-spin"></i> ${t('dashboard.generando')}`;
   lucide.createIcons();
 
   try {
@@ -103,7 +103,7 @@ async function exportarHistorial(formato) {
     URL.revokeObjectURL(url);
   } catch (err) {
     console.error('Error al exportar:', err);
-    notyf.error('No se pudo generar el archivo de exportación.');
+    notyf.error(t('dashboard.errorExportar'));
   } finally {
     btn.disabled = false;
     btn.innerHTML = textoOriginal;
@@ -154,9 +154,7 @@ async function cargarHistorial() {
 
     const hayFiltros = [...params.keys()].length > 0;
     const countEl    = document.getElementById('count-historial');
-    countEl.textContent = hayFiltros
-      ? `${data.total} resultado${data.total !== 1 ? 's' : ''}`
-      : `${data.total} evento${data.total !== 1 ? 's' : ''}`;
+    countEl.textContent = t(hayFiltros ? 'dashboard.resultados' : 'dashboard.eventos', { count: data.total });
 
     renderFilas(data.eventos || []);
     lucide.createIcons();
@@ -189,7 +187,8 @@ function limpiarFiltros() {
 // ── Timestamp del header ──────────────────────────────────────────────────────
 function actualizarTimestamp(msg = null) {
   const el = document.getElementById('ultima-actualizacion');
-  el.textContent = msg || `Última actualización: ${new Date().toLocaleString('es-CO')}`;
+  const fecha = new Date().toLocaleString(obtenerIdioma() === 'en' ? 'en-US' : 'es-CO');
+  el.textContent = msg || t('dashboard.ultimaActualizacion', { fecha });
 }
 
 // ── Renderizar estado completo ────────────────────────────────────────────────
@@ -245,8 +244,8 @@ function actualizarBannerIncidente(nvrCaidos, camCaidas) {
     <span class="incidente-dot"></span>
     <i data-lucide="alert-triangle" class="incidente-icono"></i>
     <div class="incidente-texto">
-      <strong>Incidente de red en curso</strong>
-      <span>${nvrCaidos} NVR(s) y ${camCaidas} cámara(s) caídas — revisa las tarjetas abajo</span>
+      <strong>${t('dashboard.incidenteTitulo')}</strong>
+      <span>${t('dashboard.incidenteDetalle', { nvrs: nvrCaidos, camaras: camCaidas })}</span>
     </div>`;
   lucide.createIcons();
 }
@@ -263,8 +262,8 @@ function renderGrid(seccionId, lista) {
          data-ip="${nvr.ip}" data-seccion="${seccionId}">
       <div class="dot-row">
         <div class="dot ${colorDot}"></div>
-        ${nvr.inestable ? '<i data-lucide="activity" class="inestable-icono" title="Inestable: varios cambios de estado seguidos"></i>' : ''}
-        ${camarasCaidas > 0 ? `<span class="cam-caida-dot" title="${camarasCaidas} cámara(s) caída(s) en este NVR">${camarasCaidas}</span>` : ''}
+        ${nvr.inestable ? `<i data-lucide="activity" class="inestable-icono" title="${t('dashboard.inestableTitle')}"></i>` : ''}
+        ${camarasCaidas > 0 ? `<span class="cam-caida-dot" title="${t('dashboard.camarasCaidasEnNVR', { n: camarasCaidas })}">${camarasCaidas}</span>` : ''}
       </div>
       ${nvr.numCaidas > 0 ? `<span class="caidas-badge">${nvr.numCaidas}x</span>` : ''}
       <div class="nvr-nombre">${nvr.nombre}</div>
@@ -291,6 +290,7 @@ function abrirModalNVR(nvr) {
   // si hay pocas, el modal se ajusta a su contenido sin dejar espacio vacío.
   const alturaModal = numCam > 16 ? 'height:82vh' : 'max-height:82vh';
 
+  const etiquetaCamara = { normal: t('dashboard.camaraActiva'), degradado: t('dashboard.camaraDegradada'), caido: t('dashboard.camaraCaida') };
   const camarasHTML = numCam > 0
     ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;
         align-content:start;flex:1;min-height:0;overflow-y:auto;padding-right:4px">
@@ -305,13 +305,13 @@ function abrirModalNVR(nvr) {
               ${cam.ip}
             </span>
             <span style="font-size:0.68rem;color:${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[cam.estadoVisual] || (cam.activo ? '#22c55e' : '#ef4444')}">
-              ${{normal:'● Activa',degradado:'● Degradada',caido:'● Caída'}[cam.estadoVisual] || (cam.activo ? '● Activa' : '● Caída')}
+              ● ${etiquetaCamara[cam.estadoVisual] || (cam.activo ? etiquetaCamara.normal : etiquetaCamara.caido)}
             </span>
           </div>`).join('')}
       </div>`
     : `<p style="color:#9ca3af;font-size:0.78rem;margin-top:0.5rem;line-height:1.6">
-         Sin cámaras registradas para este NVR.<br>
-         <small>Agrégalas en <code style="background:#111;padding:0.1rem 0.3rem;border-radius:3px">BACKEND/config/dispositivos.js</code></small>
+         ${t('dashboard.sinCamaras')}<br>
+         <small>${t('dashboard.agregalasEn')} <code style="background:#111;padding:0.1rem 0.3rem;border-radius:3px">BACKEND/config/dispositivos.js</code></small>
        </p>`;
 
   Swal.fire({
@@ -339,13 +339,13 @@ function abrirModalNVR(nvr) {
               background:${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[nvr.estadoVisual] || (nvr.activo ? '#22c55e' : '#ef4444')};
               box-shadow:0 0 6px ${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[nvr.estadoVisual] || (nvr.activo ? '#22c55e' : '#ef4444')}"></span>
             <strong style="color:#d4a017;font-size:1rem">${nvr.nombre}</strong>
-            <span style="color:#9ca3af;font-size:0.78rem">(${{normal:'Activo',degradado:'Degradado',caido:'Caído'}[nvr.estadoVisual] || (nvr.activo ? 'Activo' : 'Caído')})</span>
-            ${nvr.inestable ? '<span style="color:#eab308;font-size:0.7rem;border:1px solid #eab30880;padding:0.1rem 0.4rem;border-radius:4px">⚡ Inestable</span>' : ''}
+            <span style="color:#9ca3af;font-size:0.78rem">(${{normal:t('dashboard.modalActivo'),degradado:t('dashboard.modalDegradado'),caido:t('dashboard.modalCaido')}[nvr.estadoVisual] || (nvr.activo ? t('dashboard.modalActivo') : t('dashboard.modalCaido'))})</span>
+            ${nvr.inestable ? `<span style="color:#eab308;font-size:0.7rem;border:1px solid #eab30880;padding:0.1rem 0.4rem;border-radius:4px">⚡ ${t('dashboard.modalInestable')}</span>` : ''}
           </div>
           <p style="color:#9ca3af;font-size:0.78rem;margin-bottom:1rem">
-            IP: <code style="background:#111;padding:0.1rem 0.4rem;border-radius:3px">${nvr.ip}</code>
-            &nbsp;·&nbsp; Caídas esta sesión (NVR): <strong style="color:#f97316">${nvr.numCaidas || 0}</strong>
-            &nbsp;·&nbsp; Cámaras caídas: <strong style="color:${camarasCaidas > 0 ? '#ef4444' : '#22c55e'}">${camarasCaidas} de ${numCam}</strong>
+            ${t('perfil.thIP')}: <code style="background:#111;padding:0.1rem 0.4rem;border-radius:3px">${nvr.ip}</code>
+            &nbsp;·&nbsp; ${t('dashboard.modalCaidasSesion')} <strong style="color:#f97316">${nvr.numCaidas || 0}</strong>
+            &nbsp;·&nbsp; ${t('dashboard.modalCamarasCaidas')} <strong style="color:${camarasCaidas > 0 ? '#ef4444' : '#22c55e'}">${t('dashboard.modalCamarasCaidasTexto', { caidas: camarasCaidas, total: numCam })}</strong>
           </p>
           <div style="margin-bottom:1rem">
             <button onclick="window.open('http://${nvr.ip}','_blank')"
@@ -355,7 +355,7 @@ function abrirModalNVR(nvr) {
               onmouseover="this.style.borderColor='#d4a017'"
               onmouseout="this.style.borderColor='#3d3d3d'">
               <i data-lucide="external-link" style="width:14px;height:14px"></i>
-              Abrir NVR en nueva pestaña
+              ${t('dashboard.abrirNVR')}
             </button>
           </div>
         </div>
@@ -364,7 +364,7 @@ function abrirModalNVR(nvr) {
           <p style="color:#d4a017;font-size:0.78rem;margin-bottom:0.5rem;font-weight:600;
             display:flex;align-items:center;gap:5px;flex-shrink:0">
             <i data-lucide="camera" style="width:14px;height:14px"></i>
-            Cámaras registradas (${numCam})
+            ${t('dashboard.camarasRegistradas', { n: numCam })}
           </p>
           ${camarasHTML}
         </div>
@@ -465,8 +465,8 @@ function mostrarAlertaToast(ev) {
     : (esCaida ? 'camaraCaida' : 'camaraRecuperada');
 
   const titulo = esNVR
-    ? (esCaida ? 'NVR Caído'    : 'NVR Recuperado')
-    : (esCaida ? 'Cámara Caída' : 'Cámara Recuperada');
+    ? (esCaida ? t('dashboard.nvrCaidoTitulo')    : t('dashboard.nvrRecuperadoTitulo'))
+    : (esCaida ? t('dashboard.camaraCaidaTitulo') : t('dashboard.camaraRecuperadaTitulo'));
 
   const detalleNVR = (!esNVR && ev.nvrNombre) ? ` · NVR: ${ev.nvrNombre}` : '';
 
@@ -490,10 +490,10 @@ function mostrarResumenAlertas(eventos) {
     eventos.filter(e => e.tipo === tipo && e.tipoDispositivo === tipoDispositivo).length;
 
   const grupos = [
-    { tipo: 'nvrCaida',         cantidad: contar('caida', 'nvr'),         texto: 'NVR(s) caídos' },
-    { tipo: 'camaraCaida',      cantidad: contar('caida', 'camara'),      texto: 'cámara(s) caídas' },
-    { tipo: 'nvrRecuperado',    cantidad: contar('recuperacion', 'nvr'),  texto: 'NVR(s) recuperados' },
-    { tipo: 'camaraRecuperada', cantidad: contar('recuperacion', 'camara'), texto: 'cámara(s) recuperadas' }
+    { tipo: 'nvrCaida',         cantidad: contar('caida', 'nvr'),         texto: t('dashboard.grupoNvrCaidos') },
+    { tipo: 'camaraCaida',      cantidad: contar('caida', 'camara'),      texto: t('dashboard.grupoCamarasCaidas') },
+    { tipo: 'nvrRecuperado',    cantidad: contar('recuperacion', 'nvr'),  texto: t('dashboard.grupoNvrRecuperados') },
+    { tipo: 'camaraRecuperada', cantidad: contar('recuperacion', 'camara'), texto: t('dashboard.grupoCamarasRecuperadas') }
   ];
 
   grupos.filter(g => g.cantidad > 0).forEach((g, i) => {
@@ -505,7 +505,7 @@ function mostrarResumenAlertas(eventos) {
             <i data-lucide="${ICONOS_TOAST[g.tipo]}" class="toast-icono"></i>
             <div class="toast-texto">
               <b>${g.cantidad} ${g.texto}</b>
-              <small>Revisa las tarjetas y el historial</small>
+              <small>${t('dashboard.revisaTarjetas')}</small>
             </div>
           </div>`
       });
@@ -518,11 +518,11 @@ function mostrarResumenAlertas(eventos) {
 function renderFilas(eventos) {
   const tbody = document.getElementById('historial-body');
   if (!eventos.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Sin resultados para los filtros aplicados</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-msg">${t('dashboard.sinResultados')}</td></tr>`;
     return;
   }
   tbody.innerHTML = eventos.map(ev => {
-    const fecha   = new Date(ev.fecha).toLocaleString('es-CO');
+    const fecha   = new Date(ev.fecha).toLocaleString(obtenerIdioma() === 'en' ? 'en-US' : 'es-CO');
     const esCaida = ev.tipo === 'caida';
     return `
       <tr class="${esCaida ? 'fila-caida' : 'fila-recuperacion'}">
@@ -531,11 +531,11 @@ function renderFilas(eventos) {
         <td style="font-family:monospace;font-size:0.72rem">${ev.ip}</td>
         <td style="color:#9ca3af">${ev.tipo_dispositivo === 'camara' ? (ev.nvr_nombre || '—') : '—'}</td>
         <td>${ev.tipo_dispositivo === 'nvr'
-          ? '<span class="badge badge-nvr">NVR</span>'
-          : '<span class="badge badge-camara">CÁMARA</span>'}</td>
+          ? `<span class="badge badge-nvr">${t('badge.nvr')}</span>`
+          : `<span class="badge badge-camara">${t('badge.camara')}</span>`}</td>
         <td>${esCaida
-          ? '<span class="badge badge-caida">CAÍDA</span>'
-          : '<span class="badge badge-recuperacion">RECUPERADO</span>'}</td>
+          ? `<span class="badge badge-caida">${t('badge.caida')}</span>`
+          : `<span class="badge badge-recuperacion">${t('badge.recuperado')}</span>`}</td>
       </tr>`;
   }).join('');
 }
@@ -544,7 +544,7 @@ function renderFilas(eventos) {
 function mostrarInicializando() {
   ['fisica', 'paciente', 'cx', 'ucis'].forEach(sec => {
     const grid = document.getElementById(`grid-${sec}`);
-    if (grid) grid.innerHTML = '<div class="init-msg">Ejecutando primer chequeo...</div>';
+    if (grid) grid.innerHTML = `<div class="init-msg">${t('dashboard.ejecutandoChequeo')}</div>`;
   });
 }
 
@@ -555,6 +555,13 @@ generarOpcionesHora();
 fetchStatus();      // Primer pintado, mientras se conecta el socket
 cargarHistorial();
 conectarSocket();
+
+if (typeof registrarRepintado === 'function') {
+  registrarRepintado(() => {
+    if (Object.keys(estadoActual).length) renderEstado(estadoActual);
+    cargarHistorial();
+  });
+}
 
 // ── Mostrar el usuario logueado en el header ──────────────────────────────────
 function mostrarUsuarioActual() {
@@ -599,7 +606,7 @@ function conectarSocket() {
   });
 
   socket.on('disconnect', () => {
-    actualizarTimestamp('Sin conexión con el servidor — reconectando...');
+    actualizarTimestamp(t('dashboard.sinConexionReconectando'));
   });
 
   socket.on('connect_error', err => {
