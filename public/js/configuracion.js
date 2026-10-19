@@ -126,7 +126,9 @@ function aplicarHorario() {
 const CAMPOS_ALERTAS = [
   { campo: 'minutosSostenidoNoLaboral', id: 'alerta-sostenido', nombre: 'configuracion.campoSostenido' },
   { campo: 'ventanaInestableMinutos',   id: 'alerta-ventana',   nombre: 'configuracion.campoVentana' },
-  { campo: 'cambiosInestableUmbral',    id: 'alerta-cambios',   nombre: 'configuracion.campoCambios' }
+  { campo: 'cambiosInestableUmbral',    id: 'alerta-cambios',   nombre: 'configuracion.campoCambios' },
+  { campo: 'telegramVentanaSegundos',   id: 'alerta-tg-ventana', nombre: 'configuracion.campoTgVentana' },
+  { campo: 'telegramTopeMensajesMinuto', id: 'alerta-tg-tope',   nombre: 'configuracion.campoTgTope' }
 ];
 
 function leerAlertas() {

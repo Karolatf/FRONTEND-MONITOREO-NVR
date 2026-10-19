@@ -149,6 +149,28 @@
             </div>
           </div>
 
+          <div class="config-campo-num">
+            <div class="config-campo-texto">
+              <label for="alerta-tg-ventana" data-i18n="configuracion.tgVentanaTitulo">Agrupar los avisos de un mismo NVR durante</label>
+              <p class="form-nota" data-i18n="configuracion.tgVentanaAyuda">El primer aviso de cada NVR sale al instante. Si llegan más del mismo NVR dentro de este tiempo, se juntan en un solo mensaje de Telegram.</p>
+            </div>
+            <div class="config-input-unidad">
+              <input type="number" id="alerta-tg-ventana" step="1" inputmode="numeric">
+              <span data-i18n="configuracion.unidadSegundos">segundos</span>
+            </div>
+          </div>
+
+          <div class="config-campo-num">
+            <div class="config-campo-texto">
+              <label for="alerta-tg-tope" data-i18n="configuracion.tgTopeTitulo">Máximo de mensajes de Telegram por minuto</label>
+              <p class="form-nota" data-i18n="configuracion.tgTopeAyuda">Si hay muchos avisos a la vez, lo que no cabe se junta y sale después, para que nunca lleguen cientos de mensajes. El resumen de un incidente masivo siempre sale.</p>
+            </div>
+            <div class="config-input-unidad">
+              <input type="number" id="alerta-tg-tope" step="1" inputmode="numeric">
+              <span data-i18n="configuracion.unidadMensajes">mensajes</span>
+            </div>
+          </div>
+
           <div id="alertas-error" class="login-error" hidden></div>
           <div id="alertas-aviso" class="config-aviso" hidden></div>
           <div class="config-acciones">
