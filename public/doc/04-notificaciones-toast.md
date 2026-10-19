@@ -2,6 +2,12 @@
 
 Cuando un NVR o cámara se cae/recupera, aparece un recuadro pequeño en la esquina superior derecha. Se usa la librería **Notyf**.
 
+## Apagarlos desde Mi Perfil
+
+En Mi Perfil → Preferencias de Interfaz, el interruptor **Notificaciones en pantalla** apaga estos recuadros de caída y recuperación **y también la barra de incidente masivo** (doc 5). No apaga los avisos de confirmación de lo que haces tú (por ejemplo "Usuario creado"), ni las tarjetas, ni el historial, ni Telegram.
+
+Es una preferencia **por navegador y por dirección**: si se apaga entrando por `localhost:3000`, no se apaga en `172.30.29.170:3000` ni en otro equipo (por ejemplo, el de la TV). Si el dashboard ya está abierto en otra pestaña, obedece al instante.
+
 ## Reglas de cuándo aparecen
 
 - **Pocos eventos** (5 o menos al mismo tiempo): uno por uno, con nombre, IP y NVR (si es cámara)

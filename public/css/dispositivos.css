@@ -1,0 +1,189 @@
+/* ── Gestionar Dispositivos ───────────────────────────────────────────────────
+   Estilos propios de dispositivos.html. Se carga DESPUÉS de styles.css y solo
+   usa las variables del tema (--surface, --border, --amber...), así que se ve
+   bien en oscuro y en claro sin reglas aparte. Reutiliza lo que ya existe:
+   .tabla-contenedor, .historial-tabla, .filtros-bar, .btn-primario, .btn-icono,
+   .badge-estado, .modal-*, .login-field y .mini-switch.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Tarjeta principal: más alta que la de Usuarios (lleva pestañas y filtros) ── */
+.tabla-contenedor.panel-dispositivos {
+  height:     min(82vh, 820px);
+  min-height: 470px;
+}
+.pagina-angosta > .panel-dispositivos { max-width: 1240px; }
+
+/* ── Botones del encabezado (cambian según la pestaña) ─────────────────────── */
+.disp-acciones { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+/* CRÍTICO: mismo bug de especificidad que .modal-overlay / .menu-link — el
+   display:flex de arriba le gana al atributo [hidden] si no se refuerza. */
+.disp-acciones[hidden] { display: none !important; }
+
+/* ── Pestañas ──────────────────────────────────────────────────────────────── */
+.tabs {
+  display:       flex;
+  gap:           0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.9rem;
+  flex-shrink:   0;
+  overflow-x:    auto;
+}
+.tab {
+  display:       flex;
+  align-items:   center;
+  gap:           0.45rem;
+  background:    transparent;
+  border:        none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding:       0.6rem 0.95rem;
+  color:         var(--text-dim);
+  font-family:   inherit;
+  font-size:     0.78rem;
+  font-weight:   600;
+  white-space:   nowrap;
+  cursor:        pointer;
+  transition:    color 0.2s, border-color 0.2s;
+}
+.tab svg   { width: 14px; height: 14px; }
+.tab:hover { color: var(--text); }
+.tab.activo { color: var(--amber); border-bottom-color: var(--amber); }
+.tab-contador {
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: 999px;
+  padding:       0.05rem 0.5rem;
+  font-size:     0.64rem;
+  font-weight:   600;
+  color:         var(--text-dim);
+}
+.tab.activo .tab-contador { color: var(--amber); border-color: var(--amber-dim); }
+
+/* ── Sección de cada pestaña ───────────────────────────────────────────────── */
+.disp-seccion {
+  flex:           1;
+  min-height:     0;
+  display:        flex;
+  flex-direction: column;
+}
+.disp-seccion[hidden] { display: none !important; }
+.disp-seccion .filtros-bar { flex-shrink: 0; }
+
+/* ── Aviso informativo (Access Points) ─────────────────────────────────────── */
+.disp-nota {
+  display:       flex;
+  align-items:   flex-start;
+  gap:           0.5rem;
+  flex-shrink:   0;
+  margin-bottom: 0.75rem;
+  padding:       0.55rem 0.75rem;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-left:   3px solid var(--amber);
+  border-radius: var(--radius);
+  font-size:     0.72rem;
+  line-height:   1.5;
+  color:         var(--text-dim);
+}
+.disp-nota svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; color: var(--amber); }
+
+/* ── Tabla ─────────────────────────────────────────────────────────────────── */
+.ip-mono { font-family: monospace; font-size: 0.74rem; }
+.celda-nvr small {
+  display:     block;
+  margin-top:  1px;
+  font-family: monospace;
+  font-size:   0.64rem;
+  color:       var(--text-dim);
+}
+.historial-tabla tbody tr:hover td { background: var(--surface2); }
+.historial-tabla tr.fila-pausa td  { opacity: 0.6; }
+.badge-estado.pausado::before      { background: var(--amber); }
+.historial-tabla td .acciones-fila { justify-content: flex-end; }
+.historial-tabla th:last-child     { width: 1%; }
+
+/* ── Campos de formulario que no están dentro de .login-field ──────────────── */
+.campo-texto {
+  width:         100%;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       0.6rem 0.8rem;
+  color:         var(--text);
+  font-family:   inherit;
+  font-size:     0.82rem;
+  outline:       none;
+  transition:    border-color 0.2s;
+}
+.campo-texto:focus       { border-color: var(--amber-dim); }
+.campo-texto::placeholder { color: #5a5a5a; }
+
+.login-field textarea {
+  width:         100%;
+  min-height:    150px;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       0.65rem 0.85rem;
+  color:         var(--text);
+  font-family:   ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size:     0.78rem;
+  line-height:   1.6;
+  outline:       none;
+  resize:        vertical;
+  transition:    border-color 0.2s;
+}
+.login-field textarea:focus        { border-color: var(--amber-dim); }
+.login-field textarea::placeholder { color: #5a5a5a; }
+
+/* ── Modales ───────────────────────────────────────────────────────────────── */
+.modal-card-ancho { max-width: 540px; }
+.modal-cuerpo     { padding: 1.1rem 1.25rem 1.4rem; }
+.login-error.multilinea { white-space: pre-line; margin-bottom: 1rem; }
+
+/* Fila "Monitoreo activo" con su interruptor */
+.disp-switch-fila {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             1rem;
+  margin-bottom:   1.1rem;
+  padding:         0.7rem 0.85rem;
+  background:      var(--surface2);
+  border:          1px solid var(--border);
+  border-radius:   var(--radius);
+}
+.disp-switch-titulo { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.disp-switch-fila .form-nota { margin: 0.2rem 0 0; }
+
+/* Contador de la carga por lote */
+.lote-contador       { margin-top: 0.45rem; font-size: 0.7rem; color: var(--text-dim); min-height: 1em; }
+.lote-contador.ok    { color: var(--green); }
+.lote-contador.error { color: var(--red); }
+
+/* ── Administrar pisos ─────────────────────────────────────────────────────── */
+.piso-agregar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.piso-agregar .btn-primario { white-space: nowrap; }
+#pisos-error  { margin-bottom: 0.75rem; }
+.piso-fila {
+  display:     flex;
+  align-items: center;
+  gap:         0.5rem;
+  padding:     0.5rem 0;
+  border-top:  1px solid var(--border);
+}
+.piso-fila .campo-texto { flex: 1; }
+.piso-aps {
+  min-width:   96px;
+  text-align:  right;
+  font-size:   0.68rem;
+  color:       var(--text-dim);
+  white-space: nowrap;
+}
+
+/* ── Pantallas angostas ────────────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .tabla-contenedor.panel-dispositivos { height: auto; min-height: 0; max-height: none; overflow: visible; }
+  .disp-seccion { min-height: 360px; }
+  .section-header { flex-wrap: wrap; gap: 0.6rem; }
+}

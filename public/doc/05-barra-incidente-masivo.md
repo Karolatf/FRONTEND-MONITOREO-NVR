@@ -12,6 +12,10 @@ const UMBRAL_INCIDENTE = 15;
 
 Si se quiere que aparezca con menos caídas (más sensible) o con más (menos sensible), solo hay que cambiar ese número.
 
+## Cuándo no se muestra aunque haya incidente
+
+Si en Mi Perfil se apagó **Notificaciones en pantalla**, la barra no se muestra (en ese navegador). Las tarjetas, los contadores y Telegram siguen funcionando igual. Para una pantalla de TV conviene dejar ese interruptor encendido en el navegador de la TV (ver doc 4).
+
 ## Cuándo desaparece
 
 Sola, en cuanto la cantidad de caídas baja del umbral — no hay que cerrarla manualmente, y no tiene botón de cerrar (a propósito: refleja el estado real, no es una notificación que se pueda "ignorar").

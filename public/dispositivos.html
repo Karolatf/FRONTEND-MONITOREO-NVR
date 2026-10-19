@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionar Dispositivos — NVR Monitor HIC</title>
+  <script src="js/tema.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/8.2.1/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/dispositivos.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <button id="btn-menu" class="btn-menu-hamburguesa" aria-label="Abrir menú">
+        <i data-lucide="menu"></i>
+      </button>
+      <div>
+        <h1><i data-lucide="server-cog" class="icon-title"></i> <span data-i18n="header.dispositivosTitulo">Gestionar Dispositivos</span></h1>
+        <p data-i18n="header.dispositivosSub">NVRs, cámaras y Access Points — NVR Monitor HIC</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="usuario-actual" class="usuario-badge"></span>
+      <button id="btn-logout" onclick="confirmarCerrarSesion()" title="Cerrar sesión">
+        <i data-lucide="log-out" class="icon-btn"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Menú lateral ─────────────────────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay" hidden></div>
+  <nav id="menu-lateral" class="menu-lateral" hidden>
+    <div class="menu-header">
+      <span class="menu-titulo"><i data-lucide="shield-check"></i> NVR Monitor</span>
+      <button id="btn-cerrar-menu" class="menu-cerrar" aria-label="Cerrar menú"><i data-lucide="x"></i></button>
+    </div>
+    <div class="menu-usuario">
+      <div class="menu-usuario-nombre" id="menu-usuario-nombre"></div>
+      <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
+    </div>
+    <div class="menu-links">
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> <span data-i18n="menu.dashboard">Dashboard</span></a>
+      <a href="dispositivos.html" id="menu-link-dispositivos" class="menu-link" hidden><i data-lucide="server-cog"></i> <span data-i18n="menu.dispositivos">Gestionar Dispositivos</span></a>
+      <a href="configuracion.html" id="menu-link-configuracion" class="menu-link" hidden><i data-lucide="settings"></i> <span data-i18n="menu.configuracion">Configuración</span></a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> <span data-i18n="menu.usuarios">Gestión de Usuarios</span></a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> <span data-i18n="menu.perfil">Mi Perfil</span></a>
+    </div>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> <span data-i18n="menu.cerrarSesion">Cerrar sesión</span></button>
+  </nav>
+
+  <main class="pagina-angosta">
+    <div class="tabla-contenedor panel-dispositivos">
+
+      <div class="section-header">
+        <h2><i data-lucide="server-cog" class="icon-section"></i> <span data-i18n="dispositivos.tituloSeccion">Dispositivos monitoreados</span></h2>
+
+        <!-- Los botones de arriba cambian según la pestaña activa -->
+        <div class="disp-acciones" id="acciones-camaras">
+          <button type="button" class="btn-secundario" id="btn-lote"><i data-lucide="list-plus"></i> <span data-i18n="dispositivos.cargarVarias">Cargar varias</span></button>
+          <button type="button" class="btn-primario" id="btn-nueva-camara"><i data-lucide="plus"></i> <span data-i18n="dispositivos.agregarCamara">Agregar cámara</span></button>
+        </div>
+        <div class="disp-acciones" id="acciones-nvrs" hidden>
+          <button type="button" class="btn-primario" id="btn-nuevo-nvr"><i data-lucide="plus"></i> <span data-i18n="dispositivos.agregarNvr">Agregar NVR</span></button>
+        </div>
+        <div class="disp-acciones" id="acciones-aps" hidden>
+          <button type="button" class="btn-secundario" id="btn-pisos"><i data-lucide="layers"></i> <span data-i18n="dispositivos.administrarPisos">Administrar pisos</span></button>
+          <button type="button" class="btn-primario" id="btn-nuevo-ap"><i data-lucide="plus"></i> <span data-i18n="dispositivos.agregarAp">Agregar Access Point</span></button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab activo" role="tab" aria-selected="true" data-pestana="camaras">
+          <i data-lucide="camera"></i> <span data-i18n="dispositivos.tabCamaras">Cámaras</span> <span class="tab-contador" id="contador-camaras">—</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-pestana="nvrs">
+          <i data-lucide="server"></i> <span data-i18n="dispositivos.tabNvrs">NVRs</span> <span class="tab-contador" id="contador-nvrs">—</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-pestana="aps">
+          <i data-lucide="wifi"></i> <span data-i18n="dispositivos.tabAps">Access Points</span> <span class="tab-contador" id="contador-aps">—</span>
+        </button>
+      </div>
+
+      <!-- ══ Pestaña: Cámaras ═══════════════════════════════════════════════ -->
+      <section class="disp-seccion" id="seccion-camaras">
+        <div class="filtros-bar">
+          <input type="text" id="filtro-camaras-texto" class="filtro-input" data-i18n-placeholder="dispositivos.buscarPlaceholder" placeholder="Buscar por nombre o IP..." autocomplete="off">
+          <div class="filtro-item-grupo">
+            <label class="filtro-label" for="filtro-camaras-nvr" data-i18n="dispositivos.thNvr">NVR</label>
+            <select id="filtro-camaras-nvr" class="filtro-select"></select>
+          </div>
+          <div class="filtro-item-grupo">
+            <label class="filtro-label" for="filtro-camaras-estado" data-i18n="dispositivos.thEstado">Estado</label>
+            <select id="filtro-camaras-estado" class="filtro-select">
+              <option value="" data-i18n="dispositivos.todosEstados">Todos los estados</option>
+              <option value="activo" data-i18n="dispositivos.soloActivos">Activos</option>
+              <option value="pausa" data-i18n="dispositivos.soloPausa">En pausa</option>
+            </select>
+          </div>
+          <button type="button" class="btn-limpiar" data-limpiar="camaras"><i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"></i> <span data-i18n="dispositivos.limpiar">Limpiar</span></button>
+        </div>
+        <div class="tabla-wrapper">
+          <table class="historial-tabla">
+            <thead>
+              <tr>
+                <th data-i18n="dispositivos.thNombre">Nombre</th>
+                <th data-i18n="dispositivos.thIp">IP</th>
+                <th data-i18n="dispositivos.thNvr">NVR</th>
+                <th data-i18n="dispositivos.thZona">Zona</th>
+                <th data-i18n="dispositivos.thEstado">Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-camaras">
+              <tr><td colspan="6" class="empty-msg" data-i18n="dispositivos.cargando">Cargando dispositivos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ══ Pestaña: NVRs ══════════════════════════════════════════════════ -->
+      <section class="disp-seccion" id="seccion-nvrs" hidden>
+        <div class="filtros-bar">
+          <input type="text" id="filtro-nvrs-texto" class="filtro-input" data-i18n-placeholder="dispositivos.buscarPlaceholder" placeholder="Buscar por nombre o IP..." autocomplete="off">
+          <div class="filtro-item-grupo">
+            <label class="filtro-label" for="filtro-nvrs-zona" data-i18n="dispositivos.thZona">Zona</label>
+            <select id="filtro-nvrs-zona" class="filtro-select"></select>
+          </div>
+          <div class="filtro-item-grupo">
+            <label class="filtro-label" for="filtro-nvrs-estado" data-i18n="dispositivos.thEstado">Estado</label>
+            <select id="filtro-nvrs-estado" class="filtro-select">
+              <option value="" data-i18n="dispositivos.todosEstados">Todos los estados</option>
+              <option value="activo" data-i18n="dispositivos.soloActivos">Activos</option>
+              <option value="pausa" data-i18n="dispositivos.soloPausa">En pausa</option>
+            </select>
+          </div>
+          <button type="button" class="btn-limpiar" data-limpiar="nvrs"><i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"></i> <span data-i18n="dispositivos.limpiar">Limpiar</span></button>
+        </div>
+        <div class="tabla-wrapper">
+          <table class="historial-tabla">
+            <thead>
+              <tr>
+                <th data-i18n="dispositivos.thNombre">Nombre</th>
+                <th data-i18n="dispositivos.thIp">IP</th>
+                <th data-i18n="dispositivos.thZona">Zona</th>
+                <th data-i18n="dispositivos.thCamaras">Cámaras</th>
+                <th data-i18n="dispositivos.thEstado">Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-nvrs">
+              <tr><td colspan="6" class="empty-msg" data-i18n="dispositivos.cargando">Cargando dispositivos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ══ Pestaña: Access Points ═════════════════════════════════════════ -->
+      <section class="disp-seccion" id="seccion-aps" hidden>
+        <div class="disp-nota">
+          <i data-lucide="info"></i>
+          <span data-i18n="dispositivos.notaAps">El monitoreo de Access Points se activa en una etapa posterior: por ahora solo se registran.</span>
+        </div>
+        <div class="filtros-bar">
+          <input type="text" id="filtro-aps-texto" class="filtro-input" data-i18n-placeholder="dispositivos.buscarPlaceholder" placeholder="Buscar por nombre o IP..." autocomplete="off">
+          <div class="filtro-item-grupo">
+            <label class="filtro-label" for="filtro-aps-piso" data-i18n="dispositivos.thPiso">Piso</label>
+            <select id="filtro-aps-piso" class="filtro-select"></select>
+          </div>
+          <div class="filtro-item-grupo">
+            <label class="filtro-label" for="filtro-aps-estado" data-i18n="dispositivos.thEstado">Estado</label>
+            <select id="filtro-aps-estado" class="filtro-select">
+              <option value="" data-i18n="dispositivos.todosEstados">Todos los estados</option>
+              <option value="activo" data-i18n="dispositivos.soloActivos">Activos</option>
+              <option value="pausa" data-i18n="dispositivos.soloPausa">En pausa</option>
+            </select>
+          </div>
+          <button type="button" class="btn-limpiar" data-limpiar="aps"><i data-lucide="x" style="width:13px;height:13px;vertical-align:middle;margin-right:3px"></i> <span data-i18n="dispositivos.limpiar">Limpiar</span></button>
+        </div>
+        <div class="tabla-wrapper">
+          <table class="historial-tabla">
+            <thead>
+              <tr>
+                <th data-i18n="dispositivos.thNombre">Nombre</th>
+                <th data-i18n="dispositivos.thIp">IP</th>
+                <th data-i18n="dispositivos.thPiso">Piso</th>
+                <th data-i18n="dispositivos.thEstado">Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-aps">
+              <tr><td colspan="5" class="empty-msg" data-i18n="dispositivos.cargando">Cargando dispositivos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ══ Modal: NVR (agregar / editar) ════════════════════════════════════════ -->
+  <div id="modal-nvr" class="modal-overlay" data-modal hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="nvr-modal-titulo">Agregar NVR</h3>
+        <button type="button" class="menu-cerrar" data-cerrar-modal aria-label="Cerrar"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-nvr" autocomplete="off" novalidate>
+        <input type="hidden" id="nvr-id">
+        <div class="login-field">
+          <label for="nvr-zona" data-i18n="dispositivos.labelZona">Zona</label>
+          <div class="campo-select-wrap">
+            <select id="nvr-zona"></select>
+            <i data-lucide="chevron-down" class="campo-select-flecha"></i>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="nvr-nombre" data-i18n="dispositivos.labelNombre">Nombre</label>
+          <input type="text" id="nvr-nombre" maxlength="100" data-i18n-placeholder="dispositivos.placeholderNvr" placeholder="Ej.: NVR Física 15">
+        </div>
+        <div class="login-field">
+          <label for="nvr-ip" data-i18n="dispositivos.labelIp">Dirección IP</label>
+          <input type="text" id="nvr-ip" maxlength="15" inputmode="decimal" placeholder="172.30.162.200">
+        </div>
+        <div class="disp-switch-fila">
+          <div>
+            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo activo</span>
+            <p class="form-nota" data-i18n="dispositivos.notaMonitoreoNvr">Si lo pausas, ni el NVR ni sus cámaras aparecen en el dashboard ni generan alertas.</p>
+          </div>
+          <button type="button" class="mini-switch activo" id="nvr-activo" role="switch" aria-checked="true" data-switch><span class="mini-switch-bola"></span></button>
+        </div>
+        <div id="nvr-error" class="login-error" hidden></div>
+        <button type="submit" class="login-submit" id="nvr-guardar"><i data-lucide="check" class="icon-btn"></i> <span data-i18n="usuarios.guardar">Guardar</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Cámara (agregar / editar) ═════════════════════════════════════ -->
+  <div id="modal-camara" class="modal-overlay" data-modal hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="camara-modal-titulo">Agregar cámara</h3>
+        <button type="button" class="menu-cerrar" data-cerrar-modal aria-label="Cerrar"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-camara" autocomplete="off" novalidate>
+        <input type="hidden" id="camara-id">
+        <div class="login-field">
+          <label for="camara-nvr" data-i18n="dispositivos.labelNvr">NVR</label>
+          <div class="campo-select-wrap">
+            <select id="camara-nvr"></select>
+            <i data-lucide="chevron-down" class="campo-select-flecha"></i>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="camara-nombre" data-i18n="dispositivos.labelNombre">Nombre</label>
+          <input type="text" id="camara-nombre" maxlength="100" data-i18n-placeholder="dispositivos.placeholderCamara" placeholder="Ej.: Hab 601">
+        </div>
+        <div class="login-field">
+          <label for="camara-ip" data-i18n="dispositivos.labelIp">Dirección IP</label>
+          <input type="text" id="camara-ip" maxlength="15" inputmode="decimal" placeholder="172.30.165.217">
+        </div>
+        <div class="disp-switch-fila">
+          <div>
+            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo activo</span>
+            <p class="form-nota" data-i18n="dispositivos.notaMonitoreo">Si lo pausas, no aparece en el dashboard ni genera alertas.</p>
+          </div>
+          <button type="button" class="mini-switch activo" id="camara-activo" role="switch" aria-checked="true" data-switch><span class="mini-switch-bola"></span></button>
+        </div>
+        <div id="camara-error" class="login-error" hidden></div>
+        <button type="submit" class="login-submit" id="camara-guardar"><i data-lucide="check" class="icon-btn"></i> <span data-i18n="usuarios.guardar">Guardar</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Cargar varias cámaras ═════════════════════════════════════════ -->
+  <div id="modal-lote" class="modal-overlay" data-modal hidden>
+    <div class="modal-card modal-card-ancho">
+      <div class="modal-header">
+        <h3 data-i18n="dispositivos.loteTitulo">Cargar varias cámaras</h3>
+        <button type="button" class="menu-cerrar" data-cerrar-modal aria-label="Cerrar"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-lote" autocomplete="off" novalidate>
+        <div class="login-field">
+          <label for="lote-nvr" data-i18n="dispositivos.labelNvr">NVR</label>
+          <div class="campo-select-wrap">
+            <select id="lote-nvr"></select>
+            <i data-lucide="chevron-down" class="campo-select-flecha"></i>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="lote-texto" data-i18n="dispositivos.loteLabel">Cámaras (una por línea)</label>
+          <textarea id="lote-texto" spellcheck="false" placeholder="Hab 601, 172.30.165.217&#10;Hab 602, 172.30.165.218&#10;Hab 603, 172.30.165.219"></textarea>
+          <p class="form-nota" data-i18n="dispositivos.loteAyuda">Formato: nombre, IP. Una cámara por línea; puedes pegar directamente desde Excel.</p>
+          <div class="lote-contador" id="lote-contador"></div>
+        </div>
+        <div id="lote-error" class="login-error multilinea" hidden></div>
+        <button type="submit" class="login-submit" id="lote-guardar"><i data-lucide="check" class="icon-btn"></i> <span data-i18n="dispositivos.loteBoton">Cargar cámaras</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Access Point (agregar / editar) ═══════════════════════════════ -->
+  <div id="modal-ap" class="modal-overlay" data-modal hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="ap-modal-titulo">Agregar Access Point</h3>
+        <button type="button" class="menu-cerrar" data-cerrar-modal aria-label="Cerrar"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-ap" autocomplete="off" novalidate>
+        <input type="hidden" id="ap-id">
+        <div class="login-field">
+          <label for="ap-piso" data-i18n="dispositivos.labelPiso">Piso</label>
+          <div class="campo-select-wrap">
+            <select id="ap-piso"></select>
+            <i data-lucide="chevron-down" class="campo-select-flecha"></i>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="ap-nombre" data-i18n="dispositivos.labelNombre">Nombre</label>
+          <input type="text" id="ap-nombre" maxlength="100" data-i18n-placeholder="dispositivos.placeholderAp" placeholder="Ej.: AP Pasillo Norte">
+        </div>
+        <div class="login-field">
+          <label for="ap-ip" data-i18n="dispositivos.labelIp">Dirección IP</label>
+          <input type="text" id="ap-ip" maxlength="15" inputmode="decimal" placeholder="172.30.170.10">
+        </div>
+        <div class="disp-switch-fila">
+          <div>
+            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo activo</span>
+            <p class="form-nota" data-i18n="dispositivos.notaMonitoreo">Si lo pausas, no aparece en el dashboard ni genera alertas.</p>
+          </div>
+          <button type="button" class="mini-switch activo" id="ap-activo" role="switch" aria-checked="true" data-switch><span class="mini-switch-bola"></span></button>
+        </div>
+        <div id="ap-error" class="login-error" hidden></div>
+        <button type="submit" class="login-submit" id="ap-guardar"><i data-lucide="check" class="icon-btn"></i> <span data-i18n="usuarios.guardar">Guardar</span></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Administrar pisos ═════════════════════════════════════════════ -->
+  <div id="modal-pisos" class="modal-overlay" data-modal hidden>
+    <div class="modal-card modal-card-ancho">
+      <div class="modal-header">
+        <h3 data-i18n="dispositivos.pisosTitulo">Administrar pisos</h3>
+        <button type="button" class="menu-cerrar" data-cerrar-modal aria-label="Cerrar"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-cuerpo">
+        <div class="piso-agregar">
+          <input type="text" id="piso-nuevo" class="campo-texto" maxlength="40" autocomplete="off" data-i18n-placeholder="dispositivos.pisoNuevoPlaceholder" placeholder="Nombre del piso (ej.: Piso 3)">
+          <button type="button" class="btn-primario" id="btn-piso-agregar"><i data-lucide="plus"></i> <span data-i18n="dispositivos.pisoAgregar">Agregar</span></button>
+        </div>
+        <div id="pisos-error" class="login-error" hidden></div>
+        <div id="pisos-lista"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/password.js"></script>
+  <script src="js/confirm.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/dispositivos.js"></script>
+</body>
+</html>

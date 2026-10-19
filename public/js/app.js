@@ -228,13 +228,22 @@ function renderEstado(data) {
 // una notificación que ya se cerró.
 const UMBRAL_INCIDENTE = 15; // Total de NVRs + cámaras caídas para considerarlo un incidente masivo
 
+// Últimos totales calculados: se guardan para poder volver a evaluar la barra
+// al instante cuando alguien cambia la preferencia "Notificaciones en pantalla"
+// (ver el oyente "storage" al final), sin esperar al siguiente chequeo.
+let totalesIncidente = { nvrs: 0, camaras: 0 };
+
 function actualizarBannerIncidente(nvrCaidos, camCaidas) {
+  totalesIncidente = { nvrs: nvrCaidos, camaras: camCaidas };
   const banner = document.getElementById('incidente-banner');
   if (!banner) return;
 
   const totalProblemas = nvrCaidos + camCaidas;
 
-  if (totalProblemas < UMBRAL_INCIDENTE) {
+  // Preferencia "Notificaciones en pantalla" (Mi Perfil): si está apagada, la
+  // barra no se muestra, igual que los recuadros de aviso. El estado real
+  // (tarjetas, contadores, historial) sigue actualizándose siempre.
+  if (!notificacionesActivas() || totalProblemas < UMBRAL_INCIDENTE) {
     banner.hidden = true;
     return;
   }
@@ -562,6 +571,22 @@ if (typeof registrarRepintado === 'function') {
     cargarHistorial();
   });
 }
+
+// ── Preferencia "Notificaciones en pantalla" cambiada desde OTRA pestaña ──────
+// Si Mi Perfil está abierto en otra pestaña (o este dashboard en otra ventana
+// del mismo navegador) y ahí se enciende o apaga el interruptor, esta pantalla
+// obedece al instante: al apagar, cierra los recuadros que estuvieran a la vista
+// y oculta la barra; al encender, la barra vuelve si el incidente sigue en curso.
+// El navegador dispara "storage" solo en las DEMÁS pestañas del mismo sitio,
+// así que no hay riesgo de bucles.
+window.addEventListener('storage', e => {
+  if (e.key !== null && e.key !== 'nvr_notificaciones') return;
+  if (!notificacionesActivas()) {
+    notyf.dismissAll();
+    toastsActivos = [];
+  }
+  actualizarBannerIncidente(totalesIncidente.nvrs, totalesIncidente.camaras);
+});
 
 // ── Mostrar el usuario logueado en el header ──────────────────────────────────
 function mostrarUsuarioActual() {

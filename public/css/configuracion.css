@@ -1,0 +1,184 @@
+/* ── Panel de Configuración ───────────────────────────────────────────────────
+   Estilos propios de configuracion.html. Se carga DESPUÉS de styles.css, solo
+   usa las variables del tema (se ve bien en oscuro y en claro) y reutiliza lo
+   que ya existe: .perfil-card, .perfil-card-titulo, .login-field, .form-nota,
+   .btn-primario, .btn-secundario y .login-error.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.pagina-angosta > .config-contenedor { max-width: 800px; }
+.config-contenedor {
+  display:        flex;
+  flex-direction: column;
+  gap:            1.25rem;
+  margin:         0 auto;
+}
+
+/* ── Texto de apoyo ────────────────────────────────────────────────────────── */
+.config-descripcion {
+  margin:      0.2rem 0 1.1rem;
+  font-size:   0.78rem;
+  line-height: 1.55;
+  color:       var(--text-dim);
+}
+.config-bloque   { margin-bottom: 1.1rem; }
+.config-etiqueta {
+  display:        block;
+  margin-bottom:  0.5rem;
+  font-size:      0.68rem;
+  font-weight:    600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color:          var(--text-dim);
+}
+
+/* ── ¿Dentro o fuera de horario ahora mismo? ───────────────────────────────── */
+.config-ahora {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           0.5rem;
+  margin-bottom: 1.25rem;
+  padding:       0.35rem 0.75rem;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: 999px;
+  font-size:     0.7rem;
+  color:         var(--text-dim);
+}
+.config-ahora::before {
+  content:       '';
+  width:         7px;
+  height:        7px;
+  border-radius: 50%;
+  background:    var(--text-dim);
+}
+.config-ahora.laboral::before { background: var(--green); }
+.config-ahora.laboral         { color: var(--text); }
+.config-ahora:empty           { display: none; }
+
+/* ── Días de la semana ─────────────────────────────────────────────────────── */
+.chips-dias { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip-dia {
+  min-width:     52px;
+  padding:       0.5rem 0.7rem;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  color:         var(--text-dim);
+  font-family:   inherit;
+  font-size:     0.76rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    background 0.15s, border-color 0.15s, color 0.15s;
+}
+.chip-dia:hover { border-color: var(--amber-dim); color: var(--text); }
+.chip-dia[aria-pressed="true"] {
+  background:   rgba(212,160,23,0.14);
+  border-color: var(--amber);
+  color:        var(--amber);
+}
+
+/* ── Horas ─────────────────────────────────────────────────────────────────── */
+.config-fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+input[type="time"] { color-scheme: dark; }
+html[data-tema="claro"] input[type="time"] { color-scheme: light; }
+
+/* ── Campos numéricos: texto a la izquierda, valor + unidad a la derecha ───── */
+.config-campo-num {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             1.25rem;
+  padding:         0.85rem 0;
+  border-top:      1px solid var(--border);
+}
+.config-campo-num:first-of-type { border-top: none; padding-top: 0.2rem; }
+.config-campo-texto { flex: 1; min-width: 0; }
+.config-campo-texto label {
+  display:     block;
+  font-size:   0.8rem;
+  font-weight: 600;
+  color:       var(--text);
+}
+.config-campo-texto .form-nota { margin: 0.25rem 0 0; }
+.config-input-unidad {
+  display:     flex;
+  align-items: center;
+  gap:         0.5rem;
+  flex-shrink: 0;
+  font-size:   0.72rem;
+  color:       var(--text-dim);
+}
+.config-input-unidad input {
+  width:         84px;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       0.55rem 0.7rem;
+  color:         var(--text);
+  font-family:   inherit;
+  font-size:     0.85rem;
+  text-align:    center;
+  outline:       none;
+  transition:    border-color 0.2s;
+}
+.config-input-unidad input:focus { border-color: var(--amber-dim); }
+.config-input-unidad span        { min-width: 50px; }
+
+/* ── Botones, avisos y pie de cada tarjeta ─────────────────────────────────── */
+.config-acciones {
+  display:         flex;
+  justify-content: flex-end;
+  gap:             0.6rem;
+  flex-wrap:       wrap;
+  margin-top:      1.1rem;
+}
+.config-acciones .btn-primario:disabled {
+  opacity: 0.45;
+  cursor:  not-allowed;
+}
+.config-acciones .btn-primario:disabled:hover { background: var(--amber); }
+.config-aviso {
+  margin-top:    0.9rem;
+  padding:       0.55rem 0.75rem;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-left:   3px solid var(--amber);
+  border-radius: var(--radius);
+  font-size:     0.72rem;
+  line-height:   1.45;
+  color:         var(--text-dim);
+}
+.config-aviso[hidden] { display: none !important; }
+.config-pie {
+  margin:     0.9rem 0 0;
+  font-size:  0.68rem;
+  color:      var(--text-dim);
+  text-align: right;
+}
+.config-pie:empty { display: none; }
+#horario-error, #alertas-error { margin-top: 0.9rem; }
+
+/* ── Nota sobre lo que NO se puede cambiar ─────────────────────────────────── */
+.config-nota {
+  display:       flex;
+  align-items:   flex-start;
+  gap:           0.55rem;
+  padding:       0.7rem 0.9rem;
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  font-size:     0.7rem;
+  line-height:   1.5;
+  color:         var(--text-dim);
+}
+.config-nota[hidden] { display: none !important; }
+.config-nota svg     { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; color: var(--green); }
+
+/* ── Pantallas angostas ────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .config-fila-2      { grid-template-columns: 1fr; }
+  .config-campo-num   { flex-direction: column; align-items: flex-start; }
+  .config-acciones    { justify-content: stretch; }
+  .config-acciones .btn-primario,
+  .config-acciones .btn-secundario { flex: 1; justify-content: center; }
+}

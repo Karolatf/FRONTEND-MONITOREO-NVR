@@ -1,8 +1,9 @@
 // ── Menú lateral (hamburguesa) ────────────────────────────────────────────────
-// Se incluye en index.html, usuarios.html y perfil.html. Cada una de esas
-// páginas trae el mismo bloque de HTML del menú (overlay + <nav>) — este
-// script solo le da comportamiento: abrir/cerrar, pintar el usuario actual,
-// y mostrar/ocultar "Gestión de Usuarios" según el rol.
+// Se incluye en index.html, dispositivos.html, usuarios.html y perfil.html.
+// Cada una de esas páginas trae el mismo bloque de HTML del menú (overlay +
+// <nav>) — este script solo le da comportamiento: abrir/cerrar, pintar el
+// usuario actual, y mostrar/ocultar "Gestionar Dispositivos" y "Configuración"
+// (según los permisos) y "Gestión de Usuarios" (según el rol).
 (function inicializarMenu() {
   const btnAbrir  = document.getElementById('btn-menu');
   const btnCerrar = document.getElementById('btn-cerrar-menu');
@@ -21,6 +22,18 @@
 
     if (typeof registrarRepintado === 'function') {
       registrarRepintado(() => { if (rolEl) rolEl.textContent = etiquetaRol(usuario.rol); });
+    }
+
+    // Gestionar Dispositivos: lo ve quien tenga el permiso gestionar_dispositivos
+    // (el súper administrador siempre lo tiene)
+    const linkDispositivos = document.getElementById('menu-link-dispositivos');
+    if (linkDispositivos && tienePermiso('gestionar_dispositivos')) linkDispositivos.hidden = false;
+
+    // Configuración: la ve quien pueda cambiar el horario laboral o los umbrales
+    // de alerta (el súper administrador siempre puede)
+    const linkConfiguracion = document.getElementById('menu-link-configuracion');
+    if (linkConfiguracion && (tienePermiso('gestionar_horario_laboral') || tienePermiso('gestionar_umbrales_alerta'))) {
+      linkConfiguracion.hidden = false;
     }
 
     // Gestión de Usuarios: exclusivo del súper administrador — no es un

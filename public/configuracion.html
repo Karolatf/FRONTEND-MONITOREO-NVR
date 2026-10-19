@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración — NVR Monitor HIC</title>
+  <script src="js/tema.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/8.2.1/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/configuracion.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <button id="btn-menu" class="btn-menu-hamburguesa" aria-label="Abrir menú">
+        <i data-lucide="menu"></i>
+      </button>
+      <div>
+        <h1><i data-lucide="settings" class="icon-title"></i> <span data-i18n="header.configuracionTitulo">Configuración</span></h1>
+        <p data-i18n="header.configuracionSub">Horario laboral y alertas — NVR Monitor HIC</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="usuario-actual" class="usuario-badge"></span>
+      <button id="btn-logout" onclick="confirmarCerrarSesion()" title="Cerrar sesión">
+        <i data-lucide="log-out" class="icon-btn"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Menú lateral ─────────────────────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay" hidden></div>
+  <nav id="menu-lateral" class="menu-lateral" hidden>
+    <div class="menu-header">
+      <span class="menu-titulo"><i data-lucide="shield-check"></i> NVR Monitor</span>
+      <button id="btn-cerrar-menu" class="menu-cerrar" aria-label="Cerrar menú"><i data-lucide="x"></i></button>
+    </div>
+    <div class="menu-usuario">
+      <div class="menu-usuario-nombre" id="menu-usuario-nombre"></div>
+      <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
+    </div>
+    <div class="menu-links">
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> <span data-i18n="menu.dashboard">Dashboard</span></a>
+      <a href="dispositivos.html" id="menu-link-dispositivos" class="menu-link" hidden><i data-lucide="server-cog"></i> <span data-i18n="menu.dispositivos">Gestionar Dispositivos</span></a>
+      <a href="configuracion.html" id="menu-link-configuracion" class="menu-link" hidden><i data-lucide="settings"></i> <span data-i18n="menu.configuracion">Configuración</span></a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> <span data-i18n="menu.usuarios">Gestión de Usuarios</span></a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> <span data-i18n="menu.perfil">Mi Perfil</span></a>
+    </div>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> <span data-i18n="menu.cerrarSesion">Cerrar sesión</span></button>
+  </nav>
+
+  <main class="pagina-angosta">
+    <div class="config-contenedor">
+
+      <p id="config-cargando" class="empty-msg" data-i18n="configuracion.cargando">Cargando configuración...</p>
+      <div id="config-error" class="login-error" hidden></div>
+
+      <!-- ══ Horario laboral (permiso: gestionar_horario_laboral) ═══════════ -->
+      <section class="perfil-card" id="card-horario" hidden>
+        <h3 class="perfil-card-titulo"><i data-lucide="clock" class="icon-section"></i> <span data-i18n="configuracion.horarioTitulo">Horario laboral</span></h3>
+        <p class="config-descripcion" data-i18n="configuracion.horarioDescripcion">
+          Dentro de este horario, cada caída se avisa por Telegram de inmediato. Fuera de él (noches y días no marcados) solo se avisa si algo sigue caído el tiempo indicado en «Alertas y estabilidad».
+        </p>
+        <div class="config-ahora" id="config-ahora"></div>
+
+        <form id="form-horario" autocomplete="off" novalidate>
+          <div class="config-bloque">
+            <span class="config-etiqueta" data-i18n="configuracion.diasLaborales">Días laborales</span>
+            <div class="chips-dias" id="chips-dias" role="group">
+              <button type="button" class="chip-dia" data-dia="1" aria-pressed="false" data-i18n-title="configuracion.dia_1_largo" title="Lunes"><span data-i18n="configuracion.dia_1_corto">Lun</span></button>
+              <button type="button" class="chip-dia" data-dia="2" aria-pressed="false" data-i18n-title="configuracion.dia_2_largo" title="Martes"><span data-i18n="configuracion.dia_2_corto">Mar</span></button>
+              <button type="button" class="chip-dia" data-dia="3" aria-pressed="false" data-i18n-title="configuracion.dia_3_largo" title="Miércoles"><span data-i18n="configuracion.dia_3_corto">Mié</span></button>
+              <button type="button" class="chip-dia" data-dia="4" aria-pressed="false" data-i18n-title="configuracion.dia_4_largo" title="Jueves"><span data-i18n="configuracion.dia_4_corto">Jue</span></button>
+              <button type="button" class="chip-dia" data-dia="5" aria-pressed="false" data-i18n-title="configuracion.dia_5_largo" title="Viernes"><span data-i18n="configuracion.dia_5_corto">Vie</span></button>
+              <button type="button" class="chip-dia" data-dia="6" aria-pressed="false" data-i18n-title="configuracion.dia_6_largo" title="Sábado"><span data-i18n="configuracion.dia_6_corto">Sáb</span></button>
+              <button type="button" class="chip-dia" data-dia="0" aria-pressed="false" data-i18n-title="configuracion.dia_0_largo" title="Domingo"><span data-i18n="configuracion.dia_0_corto">Dom</span></button>
+            </div>
+          </div>
+
+          <div class="config-fila-2">
+            <div class="login-field">
+              <label for="hora-inicio" data-i18n="configuracion.desde">Desde</label>
+              <input type="time" id="hora-inicio" step="60">
+            </div>
+            <div class="login-field">
+              <label for="hora-fin" data-i18n="configuracion.hasta">Hasta</label>
+              <input type="time" id="hora-fin" step="60">
+            </div>
+          </div>
+
+          <div id="horario-error" class="login-error" hidden></div>
+          <div id="horario-aviso" class="config-aviso" hidden></div>
+          <div class="config-acciones">
+            <button type="button" class="btn-secundario" id="horario-restaurar"><i data-lucide="rotate-ccw"></i> <span data-i18n="configuracion.restaurar">Restaurar predeterminados</span></button>
+            <button type="submit" class="btn-primario" id="horario-guardar" disabled><i data-lucide="check"></i> <span data-i18n="configuracion.guardar">Guardar cambios</span></button>
+          </div>
+          <p class="config-pie" id="horario-pie"></p>
+        </form>
+      </section>
+
+      <!-- ══ Alertas y estabilidad (permiso: gestionar_umbrales_alerta) ═════ -->
+      <section class="perfil-card" id="card-alertas" hidden>
+        <h3 class="perfil-card-titulo"><i data-lucide="bell-ring" class="icon-section"></i> <span data-i18n="configuracion.alertasTitulo">Alertas y estabilidad</span></h3>
+        <p class="config-descripcion" data-i18n="configuracion.alertasDescripcion">
+          Ajustan cuándo se avisa por Telegram y qué tan rápido un equipo que cae y se recupera una y otra vez se considera inestable.
+        </p>
+
+        <form id="form-alertas" autocomplete="off" novalidate>
+          <div class="config-campo-num">
+            <div class="config-campo-texto">
+              <label for="alerta-sostenido" data-i18n="configuracion.sostenidoTitulo">Aviso por caída fuera de horario laboral</label>
+              <p class="form-nota" data-i18n="configuracion.sostenidoAyuda">Cuánto debe seguir caído un equipo, fuera del horario laboral, antes de avisar por Telegram. Evita avisos por cortes breves de madrugada.</p>
+            </div>
+            <div class="config-input-unidad">
+              <input type="number" id="alerta-sostenido" step="1" inputmode="numeric">
+              <span data-i18n="configuracion.unidadMinutos">minutos</span>
+            </div>
+          </div>
+
+          <div class="config-campo-num">
+            <div class="config-campo-texto">
+              <label for="alerta-ventana" data-i18n="configuracion.ventanaTitulo">Ventana para detectar un equipo inestable</label>
+              <p class="form-nota" data-i18n="configuracion.ventanaAyuda">Tiempo durante el cual se cuentan los cambios de estado (cae y se recupera) de cada equipo.</p>
+            </div>
+            <div class="config-input-unidad">
+              <input type="number" id="alerta-ventana" step="1" inputmode="numeric">
+              <span data-i18n="configuracion.unidadMinutos">minutos</span>
+            </div>
+          </div>
+
+          <div class="config-campo-num">
+            <div class="config-campo-texto">
+              <label for="alerta-cambios" data-i18n="configuracion.cambiosTitulo">Cambios para marcarlo como inestable</label>
+              <p class="form-nota" data-i18n="configuracion.cambiosAyuda">Si un equipo cambia de estado esta cantidad de veces dentro de la ventana, se marca como inestable y se deja de avisar cada parpadeo por Telegram.</p>
+            </div>
+            <div class="config-input-unidad">
+              <input type="number" id="alerta-cambios" step="1" inputmode="numeric">
+              <span data-i18n="configuracion.unidadCambios">cambios</span>
+            </div>
+          </div>
+
+          <div id="alertas-error" class="login-error" hidden></div>
+          <div id="alertas-aviso" class="config-aviso" hidden></div>
+          <div class="config-acciones">
+            <button type="button" class="btn-secundario" id="alertas-restaurar"><i data-lucide="rotate-ccw"></i> <span data-i18n="configuracion.restaurar">Restaurar predeterminados</span></button>
+            <button type="submit" class="btn-primario" id="alertas-guardar" disabled><i data-lucide="check"></i> <span data-i18n="configuracion.guardar">Guardar cambios</span></button>
+          </div>
+          <p class="config-pie" id="alertas-pie"></p>
+        </form>
+      </section>
+
+      <div class="config-nota" id="config-nota" hidden>
+        <i data-lucide="shield-check"></i>
+        <span data-i18n="configuracion.notaFija">Hay protecciones técnicas que no se pueden cambiar desde aquí (por ejemplo, el chequeo que ignora un corte general de red del propio equipo de monitoreo), para que el sistema nunca deje de avisar una caída real.</span>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="js/password.js"></script>
+  <script src="js/confirm.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/configuracion.js"></script>
+</body>
+</html>
