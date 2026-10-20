@@ -100,10 +100,10 @@
             <select id="filtro-camaras-nvr" class="filtro-select"></select>
           </div>
           <div class="filtro-item-grupo">
-            <label class="filtro-label" for="filtro-camaras-estado" data-i18n="dispositivos.thEstado">Estado</label>
+            <label class="filtro-label" for="filtro-camaras-estado" data-i18n="dispositivos.thEstado">Monitoreo</label>
             <select id="filtro-camaras-estado" class="filtro-select">
-              <option value="" data-i18n="dispositivos.todosEstados">Todos los estados</option>
-              <option value="activo" data-i18n="dispositivos.soloActivos">Activos</option>
+              <option value="" data-i18n="dispositivos.todosEstados">Todos</option>
+              <option value="activo" data-i18n="dispositivos.soloActivos">Habilitados</option>
               <option value="pausa" data-i18n="dispositivos.soloPausa">En pausa</option>
             </select>
           </div>
@@ -117,7 +117,7 @@
                 <th data-i18n="dispositivos.thIp">IP</th>
                 <th data-i18n="dispositivos.thNvr">NVR</th>
                 <th data-i18n="dispositivos.thZona">Zona</th>
-                <th data-i18n="dispositivos.thEstado">Estado</th>
+                <th data-i18n="dispositivos.thEstado">Monitoreo</th>
                 <th></th>
               </tr>
             </thead>
@@ -137,10 +137,10 @@
             <select id="filtro-nvrs-zona" class="filtro-select"></select>
           </div>
           <div class="filtro-item-grupo">
-            <label class="filtro-label" for="filtro-nvrs-estado" data-i18n="dispositivos.thEstado">Estado</label>
+            <label class="filtro-label" for="filtro-nvrs-estado" data-i18n="dispositivos.thEstado">Monitoreo</label>
             <select id="filtro-nvrs-estado" class="filtro-select">
-              <option value="" data-i18n="dispositivos.todosEstados">Todos los estados</option>
-              <option value="activo" data-i18n="dispositivos.soloActivos">Activos</option>
+              <option value="" data-i18n="dispositivos.todosEstados">Todos</option>
+              <option value="activo" data-i18n="dispositivos.soloActivos">Habilitados</option>
               <option value="pausa" data-i18n="dispositivos.soloPausa">En pausa</option>
             </select>
           </div>
@@ -154,7 +154,7 @@
                 <th data-i18n="dispositivos.thIp">IP</th>
                 <th data-i18n="dispositivos.thZona">Zona</th>
                 <th data-i18n="dispositivos.thCamaras">Cámaras</th>
-                <th data-i18n="dispositivos.thEstado">Estado</th>
+                <th data-i18n="dispositivos.thEstado">Monitoreo</th>
                 <th></th>
               </tr>
             </thead>
@@ -178,10 +178,10 @@
             <select id="filtro-aps-piso" class="filtro-select"></select>
           </div>
           <div class="filtro-item-grupo">
-            <label class="filtro-label" for="filtro-aps-estado" data-i18n="dispositivos.thEstado">Estado</label>
+            <label class="filtro-label" for="filtro-aps-estado" data-i18n="dispositivos.thEstado">Monitoreo</label>
             <select id="filtro-aps-estado" class="filtro-select">
-              <option value="" data-i18n="dispositivos.todosEstados">Todos los estados</option>
-              <option value="activo" data-i18n="dispositivos.soloActivos">Activos</option>
+              <option value="" data-i18n="dispositivos.todosEstados">Todos</option>
+              <option value="activo" data-i18n="dispositivos.soloActivos">Habilitados</option>
               <option value="pausa" data-i18n="dispositivos.soloPausa">En pausa</option>
             </select>
           </div>
@@ -194,7 +194,7 @@
                 <th data-i18n="dispositivos.thNombre">Nombre</th>
                 <th data-i18n="dispositivos.thIp">IP</th>
                 <th data-i18n="dispositivos.thPiso">Piso</th>
-                <th data-i18n="dispositivos.thEstado">Estado</th>
+                <th data-i18n="dispositivos.thEstado">Monitoreo</th>
                 <th></th>
               </tr>
             </thead>
@@ -234,7 +234,7 @@
         </div>
         <div class="disp-switch-fila">
           <div>
-            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo activo</span>
+            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo habilitado</span>
             <p class="form-nota" data-i18n="dispositivos.notaMonitoreoNvr">Si lo pausas, ni el NVR ni sus cámaras aparecen en el dashboard ni generan alertas.</p>
           </div>
           <button type="button" class="mini-switch activo" id="nvr-activo" role="switch" aria-checked="true" data-switch><span class="mini-switch-bola"></span></button>
@@ -271,7 +271,7 @@
         </div>
         <div class="disp-switch-fila">
           <div>
-            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo activo</span>
+            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo habilitado</span>
             <p class="form-nota" data-i18n="dispositivos.notaMonitoreo">Si lo pausas, no aparece en el dashboard ni genera alertas.</p>
           </div>
           <button type="button" class="mini-switch activo" id="camara-activo" role="switch" aria-checked="true" data-switch><span class="mini-switch-bola"></span></button>
@@ -335,7 +335,7 @@
         </div>
         <div class="disp-switch-fila">
           <div>
-            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo activo</span>
+            <span class="disp-switch-titulo" data-i18n="dispositivos.labelMonitoreo">Monitoreo habilitado</span>
             <p class="form-nota" data-i18n="dispositivos.notaMonitoreo">Si lo pausas, no aparece en el dashboard ni genera alertas.</p>
           </div>
           <button type="button" class="mini-switch activo" id="ap-activo" role="switch" aria-checked="true" data-switch><span class="mini-switch-bola"></span></button>

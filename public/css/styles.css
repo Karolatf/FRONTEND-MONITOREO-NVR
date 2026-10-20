@@ -238,6 +238,12 @@ main {
 .dot.verde    { background: var(--green);  box-shadow: 0 0 6px var(--green); }
 .dot.amarillo { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
 .dot.rojo     { background: var(--red);    box-shadow: 0 0 6px var(--red); animation: parpadeo 1.2s infinite; }
+.dot.gris     { background: #6b7280; }
+
+/* Sin verificar: el servidor todavía no ha chequeado este dispositivo.
+   Borde punteado y punto gris, sin brillo: se distingue de un estado real
+   sin llamar la atención como una caída. */
+.nvr-card.sin_verificar { border-style: dashed; }
 
 /* Ícono de "inestable" (flapping): dispositivo cambiando de estado seguido */
 .inestable-icono {
@@ -1013,6 +1019,56 @@ span.flatpickr-weekday {
   .incidente-banner { margin: 0 1rem; margin-top: 0.6rem; flex-wrap: wrap; }
   .incidente-texto strong { font-size: 0.8rem; }
   .incidente-texto span   { font-size: 0.7rem; }
+}
+
+/* ── Aviso del estado del monitoreo ─────────────────────────────────────── */
+/* Informa si los estados que se ven son actuales: primer chequeo en curso,
+   sin conectividad con los dispositivos (último estado conocido) o monitoreo
+   desactivado en ese equipo. Mismo formato que la barra de incidente, pero
+   en tonos informativos. El color va solo en el borde y el ícono; el texto
+   usa los tokens del tema para mantener buen contraste en claro y oscuro. */
+.monitoreo-aviso {
+  display:       flex;
+  align-items:   center;
+  gap:           0.75rem;
+  margin:        0 1.5rem;
+  margin-top:    0.75rem;
+  padding:       0.65rem 1.1rem;
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-left:   4px solid var(--text-dim);
+  border-radius: var(--radius);
+  animation:     aparecerBanner 0.25s ease-out;
+}
+
+/* CRÍTICO: igual que en .incidente-banner, sin esta regla el display: flex
+   le gana al atributo hidden y el aviso no se ocultaría. */
+.monitoreo-aviso[hidden] {
+  display: none !important;
+}
+
+.monitoreo-aviso.info   { border-left-color: var(--blue); }
+.monitoreo-aviso.alerta { border-left-color: var(--orange); }
+.monitoreo-aviso.neutro { border-left-color: var(--text-dim); }
+
+.monitoreo-aviso-icono { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-dim); }
+.monitoreo-aviso.info   .monitoreo-aviso-icono { color: var(--blue); }
+.monitoreo-aviso.alerta .monitoreo-aviso-icono { color: var(--orange); }
+
+.monitoreo-aviso-texto { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.monitoreo-aviso-texto strong { color: var(--text);     font-size: 0.85rem; font-weight: 600; }
+.monitoreo-aviso-texto span   { color: var(--text-dim); font-size: 0.75rem; line-height: 1.45; }
+
+@media (min-width: 1600px) {
+  .monitoreo-aviso { margin: 0 2rem; margin-top: 1rem; padding: 0.85rem 1.4rem; }
+  .monitoreo-aviso-texto strong { font-size: 1rem; }
+  .monitoreo-aviso-texto span   { font-size: 0.85rem; }
+}
+
+@media (max-width: 768px) {
+  .monitoreo-aviso { margin: 0 1rem; margin-top: 0.6rem; }
+  .monitoreo-aviso-texto strong { font-size: 0.8rem; }
+  .monitoreo-aviso-texto span   { font-size: 0.7rem; }
 }
 /* ── Menú lateral (hamburguesa) ──────────────────────────────────────────── */
 .btn-menu-hamburguesa {

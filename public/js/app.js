@@ -1,6 +1,16 @@
 // ── Estado global ────────────────────────────────────────────────────────────
-let estadoActual = {};
-let rangoPicker  = null;
+let estadoActual    = {};
+let rangoPicker     = null;
+let ultimoMonitoreo = null; // fase del motor de monitoreo (ver actualizarAvisoMonitoreo)
+
+// ── Estados visuales de NVRs y cámaras ────────────────────────────────────────
+// 'sin_verificar' = el servidor todavía no ha podido chequear ese dispositivo
+// (acaba de arrancar, o el equipo no alcanza la red de cámaras). En ese caso
+// `activo` llega como null: no cuenta ni como activo ni como caído.
+const COLOR_ESTADO = { normal: '#22c55e', degradado: '#eab308', caido: '#ef4444', sin_verificar: '#6b7280' };
+const esActivo = d => d.activo === true;
+const esCaido  = d => d.activo === false;
+const colorEstado = d => COLOR_ESTADO[d.estadoVisual] || (d.activo ? COLOR_ESTADO.normal : COLOR_ESTADO.caido);
 
 // ── Inicializar Flatpickr ────────────────────────────────────────────────────
 function inicializarRangoPicker() {
@@ -55,6 +65,8 @@ async function fetchStatus() {
   try {
     const res  = await authFetch('/api/status');
     const data = await res.json();
+
+    if (data.monitoreo) actualizarAvisoMonitoreo(data.monitoreo);
 
     if (data.inicializando) {
       mostrarInicializando();
@@ -200,15 +212,15 @@ function renderEstado(data) {
   secciones.forEach(sec => {
     const lista = data[sec];
     if (!lista) return;
-    totalActivos   += lista.filter(n => n.activo).length;
-    totalCaidos    += lista.filter(n => !n.activo).length;
+    totalActivos   += lista.filter(esActivo).length;
+    totalCaidos    += lista.filter(esCaido).length;
     totalDisp      += lista.length;
     lista.forEach(nvr => {
-      if (nvr.camaras) totalCamCaidas += nvr.camaras.filter(c => !c.activo).length;
+      if (nvr.camaras) totalCamCaidas += nvr.camaras.filter(esCaido).length;
     });
     renderGrid(sec, lista);
     const countEl = document.getElementById(`count-${sec}`);
-    if (countEl) countEl.textContent = `${lista.filter(n => n.activo).length} / ${lista.length}`;
+    if (countEl) countEl.textContent = `${lista.filter(esActivo).length} / ${lista.length}`;
   });
 
   document.getElementById('stat-activos').textContent    = totalActivos;
@@ -259,16 +271,72 @@ function actualizarBannerIncidente(nvrCaidos, camCaidas) {
   lucide.createIcons();
 }
 
+// ── Aviso del estado del monitoreo ────────────────────────────────────────────
+// Le dice al operador si lo que ve en las tarjetas es actual o no: mientras
+// corre el primer chequeo, cuando el equipo de monitoreo no alcanza la red de
+// dispositivos (se muestra el último estado conocido) o cuando el monitoreo
+// está apagado en ese equipo. Con el monitoreo funcionando normal, no se ve.
+// No depende de la preferencia "Notificaciones en pantalla": no es una alerta,
+// es información sobre la validez de los datos.
+function actualizarAvisoMonitoreo(monitoreo) {
+  if (monitoreo) ultimoMonitoreo = monitoreo;
+  const aviso = document.getElementById('monitoreo-aviso');
+  if (!aviso || !ultimoMonitoreo) return;
+
+  const { fase, ultimoChequeoCompleto } = ultimoMonitoreo;
+  const fecha = ultimoChequeoCompleto
+    ? new Date(ultimoChequeoCompleto).toLocaleString(obtenerIdioma() === 'en' ? 'en-US' : 'es-CO')
+    : null;
+
+  const config = {
+    iniciando: {
+      variante: 'info', icono: 'loader', girar: true,
+      titulo:  t('dashboard.monitoreoIniciandoTitulo'),
+      detalle: t('dashboard.monitoreoIniciandoDetalle')
+    },
+    sin_conectividad: {
+      variante: 'alerta', icono: 'wifi-off',
+      titulo:  t('dashboard.monitoreoSinConexionTitulo'),
+      detalle: fecha
+        ? t('dashboard.monitoreoSinConexionDetalle', { fecha })
+        : t('dashboard.monitoreoSinConexionNunca')
+    },
+    desactivado: {
+      variante: 'neutro', icono: 'pause-circle',
+      titulo:  t('dashboard.monitoreoDesactivadoTitulo'),
+      detalle: t('dashboard.monitoreoDesactivadoDetalle')
+    }
+  }[fase];
+
+  if (!config) {
+    aviso.hidden = true;
+    return;
+  }
+
+  aviso.className = `monitoreo-aviso ${config.variante}`;
+  aviso.innerHTML = `
+    <i data-lucide="${config.icono}" class="monitoreo-aviso-icono${config.girar ? ' login-spin' : ''}"></i>
+    <div class="monitoreo-aviso-texto">
+      <strong></strong>
+      <span></span>
+    </div>`;
+  aviso.querySelector('strong').textContent = config.titulo;
+  aviso.querySelector('span').textContent   = config.detalle;
+  aviso.hidden = false;
+  lucide.createIcons();
+}
+
 // ── Grilla NVR ────────────────────────────────────────────────────────────────
 function renderGrid(seccionId, lista) {
   const grid = document.getElementById(`grid-${seccionId}`);
   if (!grid) return;
   grid.innerHTML = lista.map(nvr => {
-    const camarasCaidas = nvr.camaras ? nvr.camaras.filter(c => !c.activo).length : 0;
-    const colorDot = { normal: 'verde', degradado: 'amarillo', caido: 'rojo' }[nvr.estadoVisual] || 'verde';
+    const camarasCaidas = nvr.camaras ? nvr.camaras.filter(esCaido).length : 0;
+    const colorDot = { normal: 'verde', degradado: 'amarillo', caido: 'rojo', sin_verificar: 'gris' }[nvr.estadoVisual] || 'verde';
     return `
     <div class="nvr-card ${nvr.estadoVisual || 'normal'}"
-         data-ip="${nvr.ip}" data-seccion="${seccionId}">
+         data-ip="${nvr.ip}" data-seccion="${seccionId}"
+         ${nvr.estadoVisual === 'sin_verificar' ? `title="${t('dashboard.sinVerificarTitle')}"` : ''}>
       <div class="dot-row">
         <div class="dot ${colorDot}"></div>
         ${nvr.inestable ? `<i data-lucide="activity" class="inestable-icono" title="${t('dashboard.inestableTitle')}"></i>` : ''}
@@ -294,12 +362,12 @@ document.addEventListener('click', e => {
 // ── Modal NVR ─────────────────────────────────────────────────────────────────
 function abrirModalNVR(nvr) {
   const numCam = nvr.camaras ? nvr.camaras.length : 0;
-  const camarasCaidas = nvr.camaras ? nvr.camaras.filter(c => !c.activo).length : 0;
+  const camarasCaidas = nvr.camaras ? nvr.camaras.filter(esCaido).length : 0;
   // Solo forzamos una altura fija (con scroll interno) cuando hay muchas cámaras;
   // si hay pocas, el modal se ajusta a su contenido sin dejar espacio vacío.
   const alturaModal = numCam > 16 ? 'height:82vh' : 'max-height:82vh';
 
-  const etiquetaCamara = { normal: t('dashboard.camaraActiva'), degradado: t('dashboard.camaraDegradada'), caido: t('dashboard.camaraCaida') };
+  const etiquetaCamara = { normal: t('dashboard.camaraActiva'), degradado: t('dashboard.camaraDegradada'), caido: t('dashboard.camaraCaida'), sin_verificar: t('dashboard.camaraSinVerificar') };
   const camarasHTML = numCam > 0
     ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;
         align-content:start;flex:1;min-height:0;overflow-y:auto;padding-right:4px">
@@ -313,7 +381,7 @@ function abrirModalNVR(nvr) {
               color:#d4a017;text-decoration:underline;text-underline-offset:2px">
               ${cam.ip}
             </span>
-            <span style="font-size:0.68rem;color:${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[cam.estadoVisual] || (cam.activo ? '#22c55e' : '#ef4444')}">
+            <span style="font-size:0.68rem;color:${colorEstado(cam)}">
               ● ${etiquetaCamara[cam.estadoVisual] || (cam.activo ? etiquetaCamara.normal : etiquetaCamara.caido)}
             </span>
           </div>`).join('')}
@@ -345,10 +413,10 @@ function abrirModalNVR(nvr) {
         <div style="flex-shrink:0">
           <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.75rem">
             <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;
-              background:${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[nvr.estadoVisual] || (nvr.activo ? '#22c55e' : '#ef4444')};
-              box-shadow:0 0 6px ${{normal:'#22c55e',degradado:'#eab308',caido:'#ef4444'}[nvr.estadoVisual] || (nvr.activo ? '#22c55e' : '#ef4444')}"></span>
+              background:${colorEstado(nvr)};
+              box-shadow:${nvr.estadoVisual === 'sin_verificar' ? 'none' : `0 0 6px ${colorEstado(nvr)}`}"></span>
             <strong style="color:#d4a017;font-size:1rem">${nvr.nombre}</strong>
-            <span style="color:#9ca3af;font-size:0.78rem">(${{normal:t('dashboard.modalActivo'),degradado:t('dashboard.modalDegradado'),caido:t('dashboard.modalCaido')}[nvr.estadoVisual] || (nvr.activo ? t('dashboard.modalActivo') : t('dashboard.modalCaido'))})</span>
+            <span style="color:#9ca3af;font-size:0.78rem">(${{normal:t('dashboard.modalActivo'),degradado:t('dashboard.modalDegradado'),caido:t('dashboard.modalCaido'),sin_verificar:t('dashboard.modalSinVerificar')}[nvr.estadoVisual] || (nvr.activo ? t('dashboard.modalActivo') : t('dashboard.modalCaido'))})</span>
             ${nvr.inestable ? `<span style="color:#eab308;font-size:0.7rem;border:1px solid #eab30880;padding:0.1rem 0.4rem;border-radius:4px">⚡ ${t('dashboard.modalInestable')}</span>` : ''}
           </div>
           <p style="color:#9ca3af;font-size:0.78rem;margin-bottom:1rem">
@@ -568,6 +636,7 @@ conectarSocket();
 if (typeof registrarRepintado === 'function') {
   registrarRepintado(() => {
     if (Object.keys(estadoActual).length) renderEstado(estadoActual);
+    actualizarAvisoMonitoreo();
     cargarHistorial();
   });
 }
@@ -622,6 +691,12 @@ function conectarSocket() {
   socket.on('estado', data => {
     renderEstado(data);
     actualizarTimestamp();
+  });
+
+  // Situación del motor de monitoreo (iniciando, activo, sin conectividad,
+  // desactivado): llega al conectar y cada vez que cambia.
+  socket.on('monitoreo', monitoreo => {
+    actualizarAvisoMonitoreo(monitoreo);
   });
 
   // Una caída o recuperación puntual: se agrupan por si llegan varias casi

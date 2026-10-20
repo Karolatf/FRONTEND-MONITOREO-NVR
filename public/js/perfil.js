@@ -217,13 +217,23 @@ async function cargarEstadoVivo() {
     document.getElementById('vivo-latencia').textContent = `${latenciaMs} ms`;
     pintarTiempoSesion();
 
-    if (data.inicializando) {
+    // El servidor responde, pero mientras corre el primer chequeo se muestra
+    // como "iniciando" (igual que antes). Y si el monitoreo no está activo
+    // (primer chequeo en curso, sin conectividad con los dispositivos o
+    // desactivado), el conteo de NVRs no sería un dato actual: se muestra "—".
+    const fase = data.monitoreo?.fase;
+    if (data.inicializando || fase === 'iniciando') {
       pintarPuntoEstadoServidor('iniciando');
       document.getElementById('vivo-nvrs').textContent = '—';
       return;
     }
 
     pintarPuntoEstadoServidor('en_linea');
+
+    if (fase && fase !== 'activo') {
+      document.getElementById('vivo-nvrs').textContent = '—';
+      return;
+    }
 
     // Mismo criterio que el dashboard (js/app.js): un NVR cuenta como
     // conectado cuando `activo` es true, sin importar la zona a la que
