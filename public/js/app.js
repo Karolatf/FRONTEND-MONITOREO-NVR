@@ -206,6 +206,8 @@ function actualizarTimestamp(msg = null) {
 // ── Renderizar estado completo ────────────────────────────────────────────────
 function renderEstado(data) {
   estadoActual = data;
+  // Si se llegó desde la búsqueda global, ir al dispositivo después de pintar
+  if (destinoPendiente) setTimeout(ejecutarDestinoPendiente, 0);
   const secciones = ['fisica', 'paciente', 'cx', 'ucis'];
   let totalActivos = 0, totalCaidos = 0, totalCamCaidas = 0, totalDisp = 0;
 
@@ -334,8 +336,8 @@ function renderGrid(seccionId, lista) {
     const camarasCaidas = nvr.camaras ? nvr.camaras.filter(esCaido).length : 0;
     const colorDot = { normal: 'verde', degradado: 'amarillo', caido: 'rojo', sin_verificar: 'gris' }[nvr.estadoVisual] || 'verde';
     return `
-    <div class="nvr-card ${nvr.estadoVisual || 'normal'}"
-         data-ip="${nvr.ip}" data-seccion="${seccionId}"
+    <div class="nvr-card ${nvr.estadoVisual || 'normal'}${estaResaltado(nvr.id) ? ' resaltado-busqueda' : ''}"
+         data-ip="${nvr.ip}" data-seccion="${seccionId}" data-id="${nvr.id}"
          ${nvr.estadoVisual === 'sin_verificar' ? `title="${t('dashboard.sinVerificarTitle')}"` : ''}>
       <div class="dot-row">
         <div class="dot ${colorDot}"></div>
@@ -359,8 +361,71 @@ document.addEventListener('click', e => {
   if (nvr) abrirModalNVR(nvr);
 });
 
+// ── Ir a un dispositivo (búsqueda global del header) ─────────────────────────
+// js/busqueda.js llama a esta función cuando se elige un resultado estando en
+// el dashboard. Desde otra página, la búsqueda llega con la orden en el enlace
+// (#ir-nvr-12 o #ir-camara-345-nvr-12) y se ejecuta apenas hay datos.
+//   NVR    → baja hasta su tarjeta y la resalta
+//   Cámara → abre el detalle de su NVR con la cámara resaltada
+let destinoPendiente = null;
+
+// El resaltado se guarda aparte porque la grilla se vuelve a pintar con cada
+// chequeo (y al conectar el socket): así no se pierde si llega un repintado
+// mientras dura.
+const DURACION_RESALTADO_MS = 2600;
+let resaltado = null; // { id, hasta }
+const estaResaltado = id => resaltado && resaltado.id === id && Date.now() < resaltado.hasta;
+
+function buscarNVRPorId(id) {
+  for (const sec of ['fisica', 'paciente', 'cx', 'ucis']) {
+    const nvr = (estadoActual[sec] || []).find(n => n.id === id);
+    if (nvr) return { nvr, seccion: sec };
+  }
+  return null;
+}
+
+window.irADispositivo = function irADispositivo(destino) {
+  const encontrado = buscarNVRPorId(destino.id);
+  if (!encontrado) {
+    // Todavía no llegan los datos del servidor: se ejecuta al recibirlos
+    if (!Object.keys(estadoActual).length) { destinoPendiente = destino; return; }
+    notyf.error(t('busqueda.noEnDashboard'));
+    return;
+  }
+
+  const card = document.querySelector(`.nvr-card[data-id="${destino.id}"]`);
+  if (card) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    resaltado = { id: destino.id, hasta: Date.now() + DURACION_RESALTADO_MS };
+    card.classList.add('resaltado-busqueda');
+    setTimeout(() => {
+      if (resaltado && Date.now() < resaltado.hasta) return; // se buscó otro mientras tanto
+      resaltado = null;
+      document.querySelectorAll('.nvr-card.resaltado-busqueda').forEach(el => el.classList.remove('resaltado-busqueda'));
+    }, DURACION_RESALTADO_MS);
+  }
+  if (destino.camaraId) setTimeout(() => abrirModalNVR(encontrado.nvr, destino.camaraId), card ? 350 : 0);
+};
+
+function ejecutarDestinoPendiente() {
+  if (!destinoPendiente) return;
+  const destino = destinoPendiente;
+  destinoPendiente = null;
+  window.irADispositivo(destino);
+}
+
+// Orden que viene en el enlace desde otra página
+(function leerDestinoDelEnlace() {
+  const coincide = /^#ir-(?:camara-(\d+)-)?nvr-(\d+)$/.exec(location.hash);
+  if (!coincide) return;
+  destinoPendiente = { id: Number(coincide[2]), camaraId: coincide[1] ? Number(coincide[1]) : null };
+  history.replaceState(null, '', location.pathname + location.search); // que no se repita al recargar
+})();
+
 // ── Modal NVR ─────────────────────────────────────────────────────────────────
-function abrirModalNVR(nvr) {
+// camaraResaltada (opcional): id de una cámara a resaltar, cuando se llega
+// desde la búsqueda global.
+function abrirModalNVR(nvr, camaraResaltada = null) {
   const numCam = nvr.camaras ? nvr.camaras.length : 0;
   const camarasCaidas = nvr.camaras ? nvr.camaras.filter(esCaido).length : 0;
   // Solo forzamos una altura fija (con scroll interno) cuando hay muchas cámaras;
@@ -372,7 +437,8 @@ function abrirModalNVR(nvr) {
     ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;
         align-content:start;flex:1;min-height:0;overflow-y:auto;padding-right:4px">
         ${nvr.camaras.map(cam => `
-          <div style="background:#111;border:1px solid #2e2e2e;border-radius:6px;padding:0.5rem;
+          <div data-cam-id="${cam.id}" style="background:#111;border:1px solid ${cam.id === camaraResaltada ? '#d4a017' : '#2e2e2e'};border-radius:6px;padding:0.5rem;
+            ${cam.id === camaraResaltada ? 'box-shadow:0 0 0 1px #d4a017,0 0 14px rgba(212,160,23,0.35);' : ''}
             display:flex;flex-direction:column;gap:0.3rem;align-items:center;text-align:center">
             <span style="color:#e5e7eb;font-size:0.72rem;font-weight:600;white-space:nowrap;
               overflow:hidden;text-overflow:ellipsis;max-width:100%">${cam.nombre}</span>
@@ -397,6 +463,11 @@ function abrirModalNVR(nvr) {
     padding: 0,
     didOpen: () => {
       lucide.createIcons();
+      // Llegando desde la búsqueda: la cámara elegida queda a la vista
+      if (camaraResaltada) {
+        document.querySelector(`.swal2-html-container [data-cam-id="${camaraResaltada}"]`)
+          ?.scrollIntoView({ block: 'center' });
+      }
       // Evita que SweetAlert2 haga scroll de todo el contenido:
       // el scroll queda encerrado únicamente en la cuadrícula de cámaras.
       const htmlContainer = document.querySelector('.swal2-html-container');

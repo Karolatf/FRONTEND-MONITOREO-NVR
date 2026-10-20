@@ -1,0 +1,270 @@
+/* ── Búsqueda global (header de todas las páginas) ────────────────────────────
+   Estilos de la barra que crea js/busqueda.js dentro del <header>. Solo usa
+   las variables del tema (--surface, --border, --amber...), así que se ve bien
+   en oscuro y en claro sin reglas aparte. Se carga en todas las páginas con
+   sesión, después de styles.css.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.busqueda-global {
+  position:  relative;
+  flex:      1 1 auto;
+  max-width: 560px;
+  margin:    0 2rem;
+}
+
+/* ── Campo ─────────────────────────────────────────────────────────────────── */
+.busqueda-campo {
+  display:       flex;
+  align-items:   center;
+  gap:           0.5rem;
+  background:    var(--surface2);
+  border:        1px solid var(--border);
+  border-radius: 9999px;
+  padding:       0 0.5rem 0 0.9rem;
+  height:        36px;
+  transition:    border-color 0.2s, box-shadow 0.2s;
+}
+.busqueda-campo:focus-within {
+  border-color: var(--amber-dim);
+  box-shadow:   0 0 0 3px rgba(212, 160, 23, 0.12);
+}
+
+.busqueda-icono { width: 15px; height: 15px; color: var(--text-dim); flex-shrink: 0; }
+
+.busqueda-input {
+  flex:       1;
+  min-width:  0;
+  background: transparent;
+  border:     none;
+  outline:    none;
+  color:      var(--text);
+  font:       inherit;
+  font-size:  0.78rem;
+}
+.busqueda-input::placeholder { color: var(--text-dim); }
+/* Sin la "x" propia del navegador: ya hay un botón para limpiar */
+.busqueda-input::-webkit-search-cancel-button,
+.busqueda-input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+
+.busqueda-atajo,
+.busqueda-pie kbd {
+  font-family:   inherit;
+  font-size:     0.62rem;
+  color:         var(--text-dim);
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 5px;
+  padding:       0.08rem 0.4rem;
+  white-space:   nowrap;
+}
+.busqueda-campo:focus-within .busqueda-atajo { display: none; }
+
+.busqueda-limpiar {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           24px;
+  height:          24px;
+  background:      transparent;
+  border:          none;
+  border-radius:   50%;
+  color:           var(--text-dim);
+  cursor:          pointer;
+}
+.busqueda-limpiar:hover { color: var(--text); background: var(--surface); }
+.busqueda-limpiar svg   { width: 14px; height: 14px; }
+/* CRÍTICO: el display: flex de arriba le gana al atributo [hidden] */
+.busqueda-limpiar[hidden] { display: none !important; }
+
+/* Botón de lupa: solo en pantallas angostas (ver más abajo) */
+.busqueda-abrir { display: none; }
+
+/* ── Panel de resultados ───────────────────────────────────────────────────── */
+.busqueda-panel {
+  position:      absolute;
+  top:           calc(100% + 0.45rem);
+  left:          0;
+  right:         0;
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 12px;
+  box-shadow:    0 14px 32px rgba(0, 0, 0, 0.35);
+  overflow:      hidden;
+  z-index:       200;
+  animation:     aparecerBusqueda 0.14s ease-out;
+}
+.busqueda-panel[hidden] { display: none !important; }
+
+@keyframes aparecerBusqueda {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.busqueda-lista {
+  list-style: none;
+  margin:     0;
+  padding:    0.35rem;
+  max-height: min(60vh, 440px);
+  overflow-y: auto;
+}
+.busqueda-lista:empty { display: none; }
+
+.busqueda-item {
+  display:       flex;
+  align-items:   center;
+  gap:           0.7rem;
+  padding:       0.55rem 0.65rem;
+  border-radius: 8px;
+  cursor:        pointer;
+}
+.busqueda-item.activo { background: var(--surface2); }
+
+.busqueda-item-icono {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           30px;
+  height:          30px;
+  border-radius:   8px;
+  flex-shrink:     0;
+  background:      var(--surface2);
+  border:          1px solid var(--border);
+}
+.busqueda-item-icono svg { width: 15px; height: 15px; }
+.busqueda-item-icono.tipo-nvr          { color: var(--blue); }
+.busqueda-item-icono.tipo-camara       { color: var(--orange); }
+.busqueda-item-icono.tipo-access_point { color: var(--purple); }
+
+.busqueda-item-texto { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; flex: 1; }
+.busqueda-item-linea { display: flex; align-items: baseline; gap: 0.6rem; min-width: 0; }
+
+.busqueda-item-nombre {
+  color:         var(--text);
+  font-size:     0.8rem;
+  font-weight:   600;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+.busqueda-item-ip {
+  color:       var(--text-dim);
+  font-family: monospace;
+  font-size:   0.72rem;
+  white-space: nowrap;
+}
+.busqueda-item-contexto {
+  color:         var(--text-dim);
+  font-size:     0.68rem;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.busqueda-item mark {
+  background:    rgba(212, 160, 23, 0.22);
+  color:         inherit;
+  border-radius: 3px;
+  padding:       0 1px;
+}
+
+/* ── Estado del dispositivo ────────────────────────────────────────────────── */
+.busqueda-estado {
+  display:     flex;
+  align-items: center;
+  gap:         0.35rem;
+  flex-shrink: 0;
+  font-size:   0.66rem;
+  color:       var(--text-dim);
+  white-space: nowrap;
+}
+.busqueda-estado::before {
+  content:       '';
+  width:         7px;
+  height:        7px;
+  border-radius: 50%;
+  background:    var(--text-dim);
+}
+.busqueda-estado.ok::before     { background: var(--green); }
+.busqueda-estado.aviso::before  { background: var(--yellow); }
+.busqueda-estado.caido          { color: var(--red); }
+.busqueda-estado.caido::before  { background: var(--red); }
+.busqueda-estado.pausa::before  { background: transparent; border: 1.5px solid var(--text-dim); width: 5px; height: 5px; }
+
+/* ── Mensajes y pie ────────────────────────────────────────────────────────── */
+.busqueda-mensaje {
+  padding:     0.9rem 1rem;
+  color:       var(--text-dim);
+  font-size:   0.75rem;
+  line-height: 1.5;
+}
+.busqueda-mensaje.error { color: var(--red); }
+.busqueda-mensaje.nota  { border-top: 1px solid var(--border); font-size: 0.7rem; padding: 0.6rem 1rem; }
+.busqueda-mensaje[hidden] { display: none !important; }
+
+.busqueda-pie {
+  display:     flex;
+  gap:         1rem;
+  padding:     0.5rem 1rem;
+  border-top:  1px solid var(--border);
+  color:       var(--text-dim);
+  font-size:   0.64rem;
+}
+.busqueda-pie span { display: flex; align-items: center; gap: 0.25rem; }
+.busqueda-pie[hidden] { display: none !important; }
+
+/* ── Resaltado del dispositivo encontrado (dashboard) ──────────────────────── */
+/* app.js pone la clase unos segundos y la quita; la transición hace que el
+   brillo se apague suave. Se usa clase (no animación) para que un repintado
+   de la grilla en medio no la reinicie. */
+.nvr-card { transition: box-shadow 0.6s ease, border-color 0.2s, background 0.2s; }
+.nvr-card.resaltado-busqueda {
+  box-shadow: 0 0 0 2px var(--amber), 0 0 18px rgba(212, 160, 23, 0.45);
+}
+
+/* ── Pantallas grandes (TV) ────────────────────────────────────────────────── */
+@media (min-width: 1600px) {
+  .busqueda-global { max-width: 680px; }
+  .busqueda-campo  { height: 42px; }
+  .busqueda-input  { font-size: 0.9rem; }
+  .busqueda-item-nombre { font-size: 0.9rem; }
+  .busqueda-item-ip     { font-size: 0.8rem; }
+}
+
+/* ── Pantallas angostas: la barra se reduce a una lupa ─────────────────────── */
+@media (max-width: 900px) {
+  .busqueda-global { flex: 0 0 auto; margin: 0 0.5rem 0 auto; position: static; }
+  .busqueda-campo  { display: none; }
+  .busqueda-abrir {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    width:           34px;
+    height:          34px;
+    background:      transparent;
+    border:          1px solid var(--border);
+    border-radius:   var(--radius);
+    color:           var(--text-dim);
+    cursor:          pointer;
+  }
+  .busqueda-abrir svg { width: 16px; height: 16px; }
+
+  /* Desplegada: ocupa todo el ancho del header */
+  .busqueda-global.expandida .busqueda-campo {
+    display:  flex;
+    position: absolute;
+    left:     0.75rem;
+    right:    0.75rem;
+    top:      50%;
+    transform: translateY(-50%);
+    z-index:  210;
+    background: var(--surface2);
+  }
+  .busqueda-global.expandida .busqueda-panel {
+    position: absolute;
+    top:      calc(100% - 0.25rem);
+    left:     0.75rem;
+    right:    0.75rem;
+  }
+  .busqueda-atajo { display: none; }
+  .busqueda-pie   { display: none !important; }
+}
