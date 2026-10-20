@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gráficas e Informes — NVR Monitor HIC</title>
+  <script src="js/tema.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next@23.11.5/dist/umd/i18next.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/i18next-browser-languagedetector/8.2.1/i18nextBrowserLanguageDetector.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/graficas.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <button id="btn-menu" class="btn-menu-hamburguesa" aria-label="Abrir menú">
+        <i data-lucide="menu"></i>
+      </button>
+      <div>
+        <h1><i data-lucide="chart-column" class="icon-title"></i> <span data-i18n="header.graficasTitulo">Gráficas e Informes</span></h1>
+        <p data-i18n="header.graficasSub">Disponibilidad y caídas por mes — NVR Monitor HIC</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="usuario-actual" class="usuario-badge"></span>
+      <button id="btn-logout" onclick="confirmarCerrarSesion()" title="Cerrar sesión">
+        <i data-lucide="log-out" class="icon-btn"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Menú lateral ─────────────────────────────────────────────────────── -->
+  <div id="menu-overlay" class="menu-overlay" hidden></div>
+  <nav id="menu-lateral" class="menu-lateral" hidden>
+    <div class="menu-header">
+      <span class="menu-titulo"><i data-lucide="shield-check"></i> NVR Monitor</span>
+      <button id="btn-cerrar-menu" class="menu-cerrar" aria-label="Cerrar menú"><i data-lucide="x"></i></button>
+    </div>
+    <div class="menu-usuario">
+      <div class="menu-usuario-nombre" id="menu-usuario-nombre"></div>
+      <div class="menu-usuario-rol" id="menu-usuario-rol"></div>
+    </div>
+    <div class="menu-links">
+      <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> <span data-i18n="menu.dashboard">Dashboard</span></a>
+      <a href="graficas.html" id="menu-link-graficas" class="menu-link" hidden><i data-lucide="chart-column"></i> <span data-i18n="menu.graficas">Gráficas e Informes</span></a>
+      <a href="dispositivos.html" id="menu-link-dispositivos" class="menu-link" hidden><i data-lucide="server-cog"></i> <span data-i18n="menu.dispositivos">Gestionar Dispositivos</span></a>
+      <a href="configuracion.html" id="menu-link-configuracion" class="menu-link" hidden><i data-lucide="settings"></i> <span data-i18n="menu.configuracion">Configuración</span></a>
+      <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> <span data-i18n="menu.usuarios">Gestión de Usuarios</span></a>
+      <a href="perfil.html" class="menu-link"><i data-lucide="user"></i> <span data-i18n="menu.perfil">Mi Perfil</span></a>
+    </div>
+    <button id="btn-menu-logout" class="menu-link menu-logout"><i data-lucide="log-out"></i> <span data-i18n="menu.cerrarSesion">Cerrar sesión</span></button>
+  </nav>
+
+  <main class="pagina-angosta graficas-pagina">
+    <div class="graficas-contenedor">
+
+      <!-- ── Barra superior: mes y descarga ─────────────────────────────── -->
+      <section class="graficas-barra">
+        <div class="filtro-item-grupo">
+          <label class="filtro-label" for="selector-mes" data-i18n="graficas.mes">Mes</label>
+          <select id="selector-mes" class="filtro-select graficas-mes"></select>
+        </div>
+        <p class="graficas-periodo" id="graficas-periodo"></p>
+        <button type="button" class="btn-primario" id="btn-descargar-pdf" hidden>
+          <i data-lucide="file-down"></i> <span data-i18n="graficas.descargarPdf">Descargar informe PDF</span>
+        </button>
+      </section>
+
+      <p id="graficas-cargando" class="empty-msg" data-i18n="graficas.cargando">Calculando indicadores del mes...</p>
+      <div id="graficas-error" class="login-error" hidden></div>
+
+      <div id="graficas-contenido" hidden>
+
+        <!-- ── Indicadores del mes ────────────────────────────────────────── -->
+        <section class="graficas-kpis">
+          <div class="stat-card verde">
+            <i data-lucide="activity" class="icon-stat"></i>
+            <div class="stat-num" id="kpi-disponibilidad">—</div>
+            <div class="stat-label" data-i18n="graficas.kpiDisponibilidad">Disponibilidad global</div>
+          </div>
+          <div class="stat-card rojo">
+            <i data-lucide="alert-triangle" class="icon-stat"></i>
+            <div class="stat-num" id="kpi-caidas">—</div>
+            <div class="stat-label" data-i18n="graficas.kpiCaidas">Caídas registradas</div>
+          </div>
+          <div class="stat-card morado">
+            <i data-lucide="clock" class="icon-stat"></i>
+            <div class="stat-num" id="kpi-inactividad">—</div>
+            <div class="stat-label" data-i18n="graficas.kpiInactividad">Inactividad (suma de equipos)</div>
+          </div>
+          <div class="stat-card azul">
+            <i data-lucide="server" class="icon-stat"></i>
+            <div class="stat-num" id="kpi-afectados">—</div>
+            <div class="stat-label" data-i18n="graficas.kpiAfectados">Dispositivos afectados</div>
+          </div>
+        </section>
+
+        <!-- ── Gráficas ───────────────────────────────────────────────────── -->
+        <section class="graficas-grid">
+
+          <article class="grafica-card">
+            <h3 class="perfil-card-titulo"><i data-lucide="chart-pie" class="icon-section"></i> <span data-i18n="graficas.zonasTitulo">Disponibilidad por zona</span></h3>
+            <p class="grafica-sub" id="sub-zonas"></p>
+            <div class="grafica-lienzo"><canvas id="grafica-zonas" role="img"></canvas></div>
+          </article>
+
+          <article class="grafica-card">
+            <h3 class="perfil-card-titulo"><i data-lucide="git-compare" class="icon-section"></i> <span data-i18n="graficas.compTitulo">Comparativo con el mes anterior</span></h3>
+            <p class="grafica-sub" id="sub-comparativo"></p>
+            <div class="grafica-lienzo"><canvas id="grafica-comparativo" role="img"></canvas></div>
+          </article>
+
+          <article class="grafica-card ancha">
+            <h3 class="perfil-card-titulo"><i data-lucide="chart-column" class="icon-section"></i> <span data-i18n="graficas.diaTitulo">Caídas por día</span></h3>
+            <p class="grafica-sub" data-i18n="graficas.diaSub">Cantidad de caídas registradas cada día del mes, separadas en NVRs y cámaras.</p>
+            <div class="grafica-lienzo"><canvas id="grafica-dias" role="img"></canvas></div>
+          </article>
+
+          <article class="grafica-card ancha">
+            <h3 class="perfil-card-titulo"><i data-lucide="trending-up" class="icon-section"></i> <span data-i18n="graficas.acumTitulo">Tiempo de inactividad acumulado</span></h3>
+            <p class="grafica-sub" data-i18n="graficas.acumSub">Horas acumuladas de equipos caídos a lo largo del mes, por zona (suma del tiempo caído de todos sus NVRs y cámaras).</p>
+            <div class="grafica-lienzo"><canvas id="grafica-acumulada" role="img"></canvas></div>
+          </article>
+
+          <article class="grafica-card ancha">
+            <h3 class="perfil-card-titulo"><i data-lucide="list-ordered" class="icon-section"></i> <span data-i18n="graficas.rankingTitulo">Dispositivos con más caídas</span></h3>
+            <p class="grafica-sub" data-i18n="graficas.rankingSub">Los 10 dispositivos con más caídas en el mes; a igual número de caídas, primero el que estuvo más tiempo caído.</p>
+            <div class="grafica-tabla-scroll">
+              <table class="historial-tabla">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th data-i18n="graficas.thDispositivo">Dispositivo</th>
+                    <th data-i18n="graficas.thTipo">Tipo</th>
+                    <th data-i18n="graficas.thIp">IP</th>
+                    <th data-i18n="graficas.thNvr">NVR</th>
+                    <th data-i18n="graficas.thZona">Zona</th>
+                    <th class="num" data-i18n="graficas.thCaidas">Caídas</th>
+                    <th class="num" data-i18n="graficas.thTiempoCaido">Tiempo caído</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-ranking"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="grafica-card ancha">
+            <h3 class="perfil-card-titulo"><i data-lucide="server" class="icon-section"></i> <span data-i18n="graficas.nvrsTitulo">Disponibilidad por NVR</span></h3>
+            <p class="grafica-sub" data-i18n="graficas.nvrsSub">Disponibilidad del NVR y promedio de sus cámaras. Ordenado de menor a mayor disponibilidad.</p>
+            <div class="grafica-tabla-scroll alta">
+              <table class="historial-tabla">
+                <thead>
+                  <tr>
+                    <th data-i18n="graficas.thNvr">NVR</th>
+                    <th data-i18n="graficas.thIp">IP</th>
+                    <th data-i18n="graficas.thZona">Zona</th>
+                    <th class="num" data-i18n="graficas.thDispNvr">Disponibilidad NVR</th>
+                    <th class="num" data-i18n="graficas.thDispCamaras">Disp. cámaras (prom.)</th>
+                    <th class="num" data-i18n="graficas.thCaidasNvrCam">Caídas NVR / cám.</th>
+                    <th class="num" data-i18n="graficas.thTiempoCaido">Tiempo caído</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-nvrs"></tbody>
+              </table>
+            </div>
+          </article>
+
+        </section>
+
+        <!-- ── Alcance del cálculo ────────────────────────────────────────── -->
+        <div class="graficas-nota">
+          <i data-lucide="info"></i>
+          <span data-i18n="graficas.notaAlcance">Calculado con las caídas y recuperaciones que registró el sistema. Se incluyen los NVRs y cámaras habilitados hoy; los que están en pausa o fueron eliminados no se cuentan. Si el servidor de monitoreo estuvo apagado o sin conectividad, ese tiempo no aparece como caída.</span>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="js/password.js"></script>
+  <script src="js/confirm.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/graficas.js"></script>
+</body>
+</html>

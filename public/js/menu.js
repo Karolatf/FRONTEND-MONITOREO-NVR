@@ -1,9 +1,11 @@
 // ── Menú lateral (hamburguesa) ────────────────────────────────────────────────
-// Se incluye en index.html, dispositivos.html, usuarios.html y perfil.html.
+// Se incluye en index.html, graficas.html, dispositivos.html, configuracion.html,
+// usuarios.html y perfil.html.
 // Cada una de esas páginas trae el mismo bloque de HTML del menú (overlay +
 // <nav>) — este script solo le da comportamiento: abrir/cerrar, pintar el
-// usuario actual, y mostrar/ocultar "Gestionar Dispositivos" y "Configuración"
-// (según los permisos) y "Gestión de Usuarios" (según el rol).
+// usuario actual, y mostrar/ocultar "Gráficas e Informes", "Gestionar
+// Dispositivos" y "Configuración" (según los permisos) y "Gestión de Usuarios"
+// (según el rol).
 (function inicializarMenu() {
   const btnAbrir  = document.getElementById('btn-menu');
   const btnCerrar = document.getElementById('btn-cerrar-menu');
@@ -23,6 +25,11 @@
     if (typeof registrarRepintado === 'function') {
       registrarRepintado(() => { if (rolEl) rolEl.textContent = etiquetaRol(usuario.rol); });
     }
+
+    // Gráficas e Informes: lo ve quien tenga el permiso ver_graficas
+    // (el súper administrador siempre lo tiene)
+    const linkGraficas = document.getElementById('menu-link-graficas');
+    if (linkGraficas && tienePermiso('ver_graficas')) linkGraficas.hidden = false;
 
     // Gestionar Dispositivos: lo ve quien tenga el permiso gestionar_dispositivos
     // (el súper administrador siempre lo tiene)

@@ -1,0 +1,151 @@
+/* ── Gráficas e Informes ──────────────────────────────────────────────────────
+   Estilos propios de graficas.html. Se carga DESPUÉS de styles.css y solo usa
+   las variables del tema (--surface, --border, --amber...), así que se ve bien
+   en oscuro y en claro sin reglas aparte. Reutiliza lo que ya existe:
+   .stat-card, .perfil-card-titulo, .historial-tabla, .filtro-select,
+   .btn-primario, .badge-nvr / .badge-camara, .empty-msg y .login-error.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.graficas-pagina { justify-content: flex-start; }
+.pagina-angosta > .graficas-contenedor { max-width: 1320px; }
+
+.graficas-contenedor {
+  display:        flex;
+  flex-direction: column;
+  gap:            1rem;
+}
+
+/* CRÍTICO: el contenido usa display: flex; sin esta regla le ganaría al
+   atributo [hidden] y se vería vacío mientras carga. */
+#graficas-contenido {
+  display:        flex;
+  flex-direction: column;
+  gap:            1rem;
+}
+#graficas-contenido[hidden] { display: none !important; }
+
+/* ── Barra superior: mes, periodo y descarga ───────────────────────────────── */
+.graficas-barra {
+  display:       flex;
+  align-items:   flex-end;
+  gap:           1rem;
+  flex-wrap:     wrap;
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  padding:       0.85rem 1.1rem;
+}
+.graficas-mes { min-width: 200px; }
+.graficas-periodo {
+  flex:        1;
+  min-width:   200px;
+  margin:      0;
+  padding-bottom: 0.45rem;
+  color:       var(--text-dim);
+  font-size:   0.75rem;
+}
+.graficas-barra .btn-primario[hidden] { display: none !important; }
+.graficas-barra .btn-primario:disabled { opacity: 0.6; cursor: default; }
+
+/* ── Indicadores ───────────────────────────────────────────────────────────── */
+.graficas-kpis {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   1rem;
+}
+.graficas-kpis .stat-num { font-size: 1.65rem; }
+
+/* ── Grilla de gráficas ────────────────────────────────────────────────────── */
+.graficas-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   1rem;
+}
+
+.grafica-card {
+  background:    var(--surface);
+  border:        1px solid var(--border);
+  border-radius: 14px;
+  padding:       1.25rem 1.35rem 1.1rem;
+  min-width:     0;
+}
+.grafica-card.ancha { grid-column: 1 / -1; }
+.grafica-card .perfil-card-titulo { margin-bottom: 0.3rem; }
+
+.grafica-sub {
+  margin:      0 0 0.85rem;
+  color:       var(--text-dim);
+  font-size:   0.72rem;
+  line-height: 1.45;
+}
+
+.grafica-lienzo {
+  position: relative;
+  height:   280px;
+}
+.grafica-card.ancha .grafica-lienzo { height: 260px; }
+
+/* ── Tablas ────────────────────────────────────────────────────────────────── */
+.grafica-tabla-scroll {
+  overflow-x: auto;
+  max-height: 460px;
+  overflow-y: auto;
+}
+.grafica-tabla-scroll.alta { max-height: 520px; }
+.grafica-tabla-scroll .historial-tabla { margin-top: 0; }
+.grafica-tabla-scroll thead th {
+  position:   sticky;
+  top:        0;
+  background: var(--surface);
+  z-index:    1;
+}
+
+.historial-tabla th.num,
+.historial-tabla td.num { text-align: right; white-space: nowrap; }
+.historial-tabla td.mono  { font-family: monospace; font-size: 0.72rem; }
+.historial-tabla td.tenue,
+.historial-tabla .tenue   { color: var(--text-dim); }
+
+.graficas-posicion { color: var(--text-dim); width: 2rem; }
+.graficas-caidas   { color: var(--red); font-weight: 600; }
+
+.disp-buena { color: var(--green) !important;  font-weight: 600; }
+.disp-media { color: var(--amber) !important;  font-weight: 600; }
+.disp-baja  { color: var(--red) !important;    font-weight: 600; }
+
+/* ── Nota de alcance ───────────────────────────────────────────────────────── */
+.graficas-nota {
+  display:       flex;
+  gap:           0.6rem;
+  align-items:   flex-start;
+  color:         var(--text-dim);
+  font-size:     0.72rem;
+  line-height:   1.5;
+  padding:       0.75rem 1rem;
+  border:        1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.graficas-nota svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Pantallas grandes (TV) ────────────────────────────────────────────────── */
+@media (min-width: 1600px) {
+  .pagina-angosta > .graficas-contenedor { max-width: 1520px; }
+  .grafica-lienzo { height: 320px; }
+  .grafica-card.ancha .grafica-lienzo { height: 300px; }
+}
+
+/* ── Laptops pequeños y tablets ────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .graficas-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .graficas-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .graficas-kpis { grid-template-columns: 1fr; }
+  .graficas-barra { align-items: stretch; flex-direction: column; }
+  .graficas-periodo { padding-bottom: 0; }
+  .grafica-lienzo, .grafica-card.ancha .grafica-lienzo { height: 230px; }
+}
