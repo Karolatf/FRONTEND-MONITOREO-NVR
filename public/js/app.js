@@ -7,7 +7,9 @@ let ultimoMonitoreo = null; // fase del motor de monitoreo (ver actualizarAvisoM
 // 'sin_verificar' = el servidor todavía no ha podido chequear ese dispositivo
 // (acaba de arrancar, o el equipo no alcanza la red de cámaras). En ese caso
 // `activo` llega como null: no cuenta ni como activo ni como caído.
-const COLOR_ESTADO = { normal: '#22c55e', degradado: '#eab308', caido: '#ef4444', sin_verificar: '#6b7280' };
+// Colores de estado desde las variables del tema, para que el modal del NVR
+// se vea bien tanto en el tema oscuro como en el claro.
+const COLOR_ESTADO = { normal: 'var(--green)', degradado: 'var(--yellow)', caido: 'var(--red)', sin_verificar: '#6b7280' };
 const esActivo = d => d.activo === true;
 const esCaido  = d => d.activo === false;
 const colorEstado = d => COLOR_ESTADO[d.estadoVisual] || (d.activo ? COLOR_ESTADO.normal : COLOR_ESTADO.caido);
@@ -437,14 +439,14 @@ function abrirModalNVR(nvr, camaraResaltada = null) {
     ? `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;
         align-content:start;flex:1;min-height:0;overflow-y:auto;padding-right:4px">
         ${nvr.camaras.map(cam => `
-          <div data-cam-id="${cam.id}" style="background:#111;border:1px solid ${cam.id === camaraResaltada ? '#d4a017' : '#2e2e2e'};border-radius:6px;padding:0.5rem;
-            ${cam.id === camaraResaltada ? 'box-shadow:0 0 0 1px #d4a017,0 0 14px rgba(212,160,23,0.35);' : ''}
+          <div data-cam-id="${cam.id}" style="background:var(--bg);border:1px solid ${cam.id === camaraResaltada ? 'var(--amber)' : 'var(--border)'};border-radius:6px;padding:0.5rem;
+            ${cam.id === camaraResaltada ? 'box-shadow:0 0 0 1px var(--amber),0 0 14px rgba(212,160,23,0.35);' : ''}
             display:flex;flex-direction:column;gap:0.3rem;align-items:center;text-align:center">
-            <span style="color:#e5e7eb;font-size:0.72rem;font-weight:600;white-space:nowrap;
+            <span style="color:var(--text);font-size:0.72rem;font-weight:600;white-space:nowrap;
               overflow:hidden;text-overflow:ellipsis;max-width:100%">${cam.nombre}</span>
             <span onclick="window.open('http://${cam.ip}','_blank')"
               style="font-family:monospace;font-size:0.66rem;cursor:pointer;
-              color:#d4a017;text-decoration:underline;text-underline-offset:2px">
+              color:var(--amber);text-decoration:underline;text-underline-offset:2px">
               ${cam.ip}
             </span>
             <span style="font-size:0.68rem;color:${colorEstado(cam)}">
@@ -452,13 +454,13 @@ function abrirModalNVR(nvr, camaraResaltada = null) {
             </span>
           </div>`).join('')}
       </div>`
-    : `<p style="color:#9ca3af;font-size:0.78rem;margin-top:0.5rem;line-height:1.6">
+    : `<p style="color:var(--text-dim);font-size:0.78rem;margin-top:0.5rem;line-height:1.6">
          ${t('dashboard.sinCamaras')}<br>
-         <small>${t('dashboard.agregalasEn')} <code style="background:#111;padding:0.1rem 0.3rem;border-radius:3px">BACKEND/config/dispositivos.js</code></small>
+         <small>${t('dashboard.agregalasEn')} <code style="background:var(--bg);padding:0.1rem 0.3rem;border-radius:3px">BACKEND/config/dispositivos.js</code></small>
        </p>`;
 
   Swal.fire({
-    background: '#1a1a1a', color: '#e5e7eb',
+    background: 'var(--surface)', color: 'var(--text)',
     showConfirmButton: false, showCloseButton: true, width: 640,
     padding: 0,
     didOpen: () => {
@@ -486,30 +488,30 @@ function abrirModalNVR(nvr, camaraResaltada = null) {
             <span style="width:10px;height:10px;border-radius:50%;flex-shrink:0;
               background:${colorEstado(nvr)};
               box-shadow:${nvr.estadoVisual === 'sin_verificar' ? 'none' : `0 0 6px ${colorEstado(nvr)}`}"></span>
-            <strong style="color:#d4a017;font-size:1rem">${nvr.nombre}</strong>
-            <span style="color:#9ca3af;font-size:0.78rem">(${{normal:t('dashboard.modalActivo'),degradado:t('dashboard.modalDegradado'),caido:t('dashboard.modalCaido'),sin_verificar:t('dashboard.modalSinVerificar')}[nvr.estadoVisual] || (nvr.activo ? t('dashboard.modalActivo') : t('dashboard.modalCaido'))})</span>
-            ${nvr.inestable ? `<span style="color:#eab308;font-size:0.7rem;border:1px solid #eab30880;padding:0.1rem 0.4rem;border-radius:4px">⚡ ${t('dashboard.modalInestable')}</span>` : ''}
+            <strong style="color:var(--amber);font-size:1rem">${nvr.nombre}</strong>
+            <span style="color:var(--text-dim);font-size:0.78rem">(${{normal:t('dashboard.modalActivo'),degradado:t('dashboard.modalDegradado'),caido:t('dashboard.modalCaido'),sin_verificar:t('dashboard.modalSinVerificar')}[nvr.estadoVisual] || (nvr.activo ? t('dashboard.modalActivo') : t('dashboard.modalCaido'))})</span>
+            ${nvr.inestable ? `<span style="color:var(--yellow);font-size:0.7rem;border:1px solid var(--yellow-dim);padding:0.1rem 0.4rem;border-radius:4px">⚡ ${t('dashboard.modalInestable')}</span>` : ''}
           </div>
-          <p style="color:#9ca3af;font-size:0.78rem;margin-bottom:1rem">
-            ${t('perfil.thIP')}: <code style="background:#111;padding:0.1rem 0.4rem;border-radius:3px">${nvr.ip}</code>
-            &nbsp;·&nbsp; ${t('dashboard.modalCaidasSesion')} <strong style="color:#f97316">${nvr.numCaidas || 0}</strong>
-            &nbsp;·&nbsp; ${t('dashboard.modalCamarasCaidas')} <strong style="color:${camarasCaidas > 0 ? '#ef4444' : '#22c55e'}">${t('dashboard.modalCamarasCaidasTexto', { caidas: camarasCaidas, total: numCam })}</strong>
+          <p style="color:var(--text-dim);font-size:0.78rem;margin-bottom:1rem">
+            ${t('perfil.thIP')}: <code style="background:var(--bg);padding:0.1rem 0.4rem;border-radius:3px">${nvr.ip}</code>
+            &nbsp;·&nbsp; ${t('dashboard.modalCaidasSesion')} <strong style="color:var(--orange)">${nvr.numCaidas || 0}</strong>
+            &nbsp;·&nbsp; ${t('dashboard.modalCamarasCaidas')} <strong style="color:${camarasCaidas > 0 ? 'var(--red)' : 'var(--green)'}">${t('dashboard.modalCamarasCaidasTexto', { caidas: camarasCaidas, total: numCam })}</strong>
           </p>
           <div style="margin-bottom:1rem">
             <button onclick="window.open('http://${nvr.ip}','_blank')"
-              style="width:100%;padding:0.55rem;background:#2a2a2a;border:1px solid #3d3d3d;
-              color:#e5e7eb;border-radius:6px;cursor:pointer;font-size:0.8rem;display:flex;
+              style="width:100%;padding:0.55rem;background:var(--surface2);border:1px solid var(--border);
+              color:var(--text);border-radius:6px;cursor:pointer;font-size:0.8rem;display:flex;
               align-items:center;justify-content:center;gap:6px"
-              onmouseover="this.style.borderColor='#d4a017'"
-              onmouseout="this.style.borderColor='#3d3d3d'">
+              onmouseover="this.style.borderColor='var(--amber)'"
+              onmouseout="this.style.borderColor='var(--border)'">
               <i data-lucide="external-link" style="width:14px;height:14px"></i>
               ${t('dashboard.abrirNVR')}
             </button>
           </div>
         </div>
-        <div style="border-top:1px solid #2e2e2e;padding-top:0.75rem;display:flex;
+        <div style="border-top:1px solid var(--border);padding-top:0.75rem;display:flex;
           flex-direction:column;flex:1;min-height:0">
-          <p style="color:#d4a017;font-size:0.78rem;margin-bottom:0.5rem;font-weight:600;
+          <p style="color:var(--amber);font-size:0.78rem;margin-bottom:0.5rem;font-weight:600;
             display:flex;align-items:center;gap:5px;flex-shrink:0">
             <i data-lucide="camera" style="width:14px;height:14px"></i>
             ${t('dashboard.camarasRegistradas', { n: numCam })}
@@ -677,7 +679,7 @@ function renderFilas(eventos) {
         <td>${fecha}</td>
         <td>${ev.nombre}</td>
         <td style="font-family:monospace;font-size:0.72rem">${ev.ip}</td>
-        <td style="color:#9ca3af">${ev.tipo_dispositivo === 'camara' ? (ev.nvr_nombre || '—') : '—'}</td>
+        <td style="color:var(--text-dim)">${ev.tipo_dispositivo === 'camara' ? (ev.nvr_nombre || '—') : '—'}</td>
         <td>${ev.tipo_dispositivo === 'nvr'
           ? `<span class="badge badge-nvr">${t('badge.nvr')}</span>`
           : `<span class="badge badge-camara">${t('badge.camara')}</span>`}</td>

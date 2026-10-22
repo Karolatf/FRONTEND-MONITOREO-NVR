@@ -23,33 +23,42 @@
 }
 
 /* ── Tema claro ──────────────────────────────────────────────────────────────
-   Se activa con data-tema="claro" en <html> (ver js/tema.js). Solo se
-   redefinen los tokens de SUPERFICIE (fondo, tarjetas, bordes, texto) — los
-   colores de acento (amber, verde, rojo, azul, morado…) se mantienen
-   exactamente igual que en el tema oscuro, tal como pide el proyecto. */
-html[data-tema="claro"] {
-  --bg:       #f3f4f6;
-  --surface:  #ffffff;
-  --surface2: #eef0f3;
-  --border:   #dde1e6;
-  --text:     #1c2027;
-  --text-dim: #667085;
+   Se activa con data-tema="claro" en <html> (ver js/tema.js).
 
-  /* Los acentos de color se oscurecen un poco SOLO en este tema: el mismo
-     dorado que se ve vibrante sobre fondo oscuro (contraste 8.2:1) cae a
-     apenas 2.4:1 sobre blanco — muy por debajo del 4.5:1 que pide WCAG AA
-     para texto, y se ve lavado/difícil de leer. Se mantiene el mismo matiz
-     e identidad, solo más oscuros para que títulos, badges y estados
-     sigan siendo legibles sobre fondo claro. Verificado con la fórmula de
-     contraste relativo de WCAG antes de elegir estos valores. */
-  --amber:     #966b09;
-  --amber-dim: #7d5a07;
-  --green:     #0f7a38;
-  --green-dim: #0c6530;
-  --red:       #d32f2f;
-  --red-dim:   #b71c1c;
-  --blue:      #1d5fd1;
-  --purple:    #8b2fd6;
+   Criterio de diseño: superficies blancas y limpias, el dorado institucional
+   se usa IGUAL que en el tema oscuro (#d4a017) pero solo como acento —
+   íconos, bordes, botones, interruptores y estados seleccionados—, nunca
+   como color de texto: el dorado sobre blanco no tiene contraste suficiente
+   y, si se oscurece para que lo tenga, se vuelve marrón. Los títulos y
+   nombres van en texto oscuro. Los ajustes por componente están al final
+   del archivo ("Tema claro — componentes"). */
+html[data-tema="claro"] {
+  --bg:        #f4f5f7;
+  --surface:   #ffffff;
+  --surface2:  #f8f9fb;
+  --border:    #e3e6eb;
+  --text:      #1f2937;
+  --text-dim:  #6b7280;
+
+  /* Dorado: el mismo del tema oscuro para rellenos y bordes */
+  --amber:     #d4a017;
+  --amber-dim: #b8860b;
+
+  /* Estados: tonos un poco más profundos para que se lean sobre blanco */
+  --green:     #16a34a;
+  --green-dim: #15803d;
+  --red:       #dc2626;
+  --red-dim:   #b91c1c;
+  --yellow:    #ca8a04;
+  --yellow-dim:#a16207;
+  --orange:    #ea580c;
+  --blue:      #2563eb;
+  --purple:    #9333ea;
+
+  /* Exclusivos del tema claro */
+  --texto-dorado: #7a5a00;   /* texto dorado pequeño (badges), contraste 6.4:1 */
+  --sombra:       0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.04);
+  --sombra-hover: 0 4px 12px rgba(16, 24, 40, 0.08);
 }
 
 body {
@@ -1918,3 +1927,130 @@ span.flatpickr-weekday {
   width:          38%;
 }
 .perfil-tabla-info td { color: var(--text); line-height: 1.5; }
+
+/* ── Tema claro — componentes ───────────────────────────────────────────────
+   Solo aplica con data-tema="claro"; el tema oscuro no cambia. */
+
+/* Títulos y nombres en texto oscuro; el dorado queda en el ícono */
+html[data-tema="claro"] header h1,
+html[data-tema="claro"] .section-header h2,
+html[data-tema="claro"] .perfil-card-titulo,
+html[data-tema="claro"] .modal-header h3,
+html[data-tema="claro"] .menu-titulo,
+html[data-tema="claro"] .login-card h1,
+html[data-tema="claro"] .notyf__message b { color: var(--text); }
+
+html[data-tema="claro"] .icon-title,
+html[data-tema="claro"] .section-header h2 svg,
+html[data-tema="claro"] .perfil-card-titulo svg,
+html[data-tema="claro"] .menu-titulo svg,
+html[data-tema="claro"] .login-logo-icon,
+html[data-tema="claro"] .perfil-avatar svg { color: var(--amber-dim); }
+
+/* Paneles con una sombra suave en vez de solo borde */
+html[data-tema="claro"] header,
+html[data-tema="claro"] .stat-card,
+html[data-tema="claro"] .nvr-section,
+html[data-tema="claro"] .historial-section { box-shadow: var(--sombra); }
+
+/* Tarjetas de NVR: al pasar el mouse NO se oscurecen; se elevan con borde
+   dorado y sombra. Los estados usan un tinte suave del color de estado. */
+html[data-tema="claro"] .nvr-card {
+  background: var(--surface2);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+html[data-tema="claro"] .nvr-card:hover {
+  background:   var(--surface);
+  border-color: var(--amber);
+  box-shadow:   var(--sombra-hover);
+}
+html[data-tema="claro"] .nvr-nombre { color: var(--text); }
+html[data-tema="claro"] .nvr-card.caido           { background: #fef2f2; border-color: #fca5a5; }
+html[data-tema="claro"] .nvr-card.caido:hover     { background: #fef2f2; border-color: var(--red); }
+html[data-tema="claro"] .nvr-card.caido .nvr-nombre { color: #991b1b; }
+html[data-tema="claro"] .nvr-card.degradado       { background: #fffbeb; border-color: #fcd34d; }
+html[data-tema="claro"] .nvr-card.degradado:hover { background: #fffbeb; border-color: var(--yellow); }
+html[data-tema="claro"] .dot.verde,
+html[data-tema="claro"] .dot.amarillo,
+html[data-tema="claro"] .dot.rojo { box-shadow: none; }
+
+/* Botones e interacciones: el texto no se vuelve dorado (no se leería); se
+   resalta con borde dorado y texto oscuro */
+html[data-tema="claro"] #btn-actualizar:hover,
+html[data-tema="claro"] .btn-limpiar:hover,
+html[data-tema="claro"] .btn-exportar:hover,
+html[data-tema="claro"] .btn-menu-hamburguesa:hover,
+html[data-tema="claro"] .btn-secundario:hover,
+html[data-tema="claro"] .btn-icono:hover { border-color: var(--amber); color: var(--text); }
+html[data-tema="claro"] .menu-exportar button:hover { background: var(--surface2); color: var(--text); }
+html[data-tema="claro"] .menu-cerrar:hover,
+html[data-tema="claro"] .login-eye:hover,
+html[data-tema="claro"] .campo-icono-trailing:hover,
+html[data-tema="claro"] .login-link-recuperar:hover { color: var(--text); }
+
+/* Botones dorados: mismo dorado y texto oscuro que en el tema oscuro */
+html[data-tema="claro"] .btn-primario:hover,
+html[data-tema="claro"] .login-submit:hover { background: #c4920f; }
+
+/* Menú lateral: opción activa con barra dorada a la izquierda */
+html[data-tema="claro"] .menu-link.activo {
+  background: #fbf3dc;
+  color:      var(--text);
+  box-shadow: inset 3px 0 0 var(--amber);
+}
+html[data-tema="claro"] .menu-overlay { background: rgba(16, 24, 40, 0.35); }
+
+/* Badges y textos dorados pequeños */
+html[data-tema="claro"] .badge-rol.superadmin { background: #fbf3dc; color: var(--texto-dorado); }
+html[data-tema="claro"] .tab.activo { color: var(--text); border-bottom-color: var(--amber); }
+html[data-tema="claro"] .tab.activo .tab-contador { color: var(--texto-dorado); border-color: var(--amber); }
+html[data-tema="claro"] .chip-dia[aria-pressed="true"] { color: var(--texto-dorado); }
+html[data-tema="claro"] .disp-media { color: var(--texto-dorado) !important; }
+
+/* Login */
+html[data-tema="claro"] .login-body {
+  background: radial-gradient(circle at 50% 0%, #ffffff 0%, var(--bg) 60%);
+}
+html[data-tema="claro"] .login-card { box-shadow: 0 12px 32px rgba(16, 24, 40, 0.08); }
+html[data-tema="claro"] .login-info { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+html[data-tema="claro"] .login-footnote { color: var(--text-dim); }
+
+/* Modales y menús flotantes: sombras suaves, no negras */
+html[data-tema="claro"] .menu-exportar,
+html[data-tema="claro"] .notyf__toast { box-shadow: 0 10px 30px rgba(16, 24, 40, 0.12) !important; }
+
+/* Modal de detalle del NVR (SweetAlert2) */
+html[data-tema="claro"] .swal2-popup  { box-shadow: 0 20px 50px rgba(16, 24, 40, 0.18); }
+html[data-tema="claro"] .swal2-container.swal2-backdrop-show { background: rgba(16, 24, 40, 0.35) !important; }
+
+/* Calendario de fechas (Flatpickr) */
+html[data-tema="claro"] .flatpickr-calendar {
+  background: var(--surface) !important;
+  box-shadow: 0 16px 40px rgba(16, 24, 40, 0.12), 0 0 0 1px var(--border) !important;
+}
+html[data-tema="claro"] .flatpickr-current-month,
+html[data-tema="claro"] .flatpickr-current-month .flatpickr-monthDropdown-months,
+html[data-tema="claro"] .flatpickr-current-month input.cur-year,
+html[data-tema="claro"] .flatpickr-day { color: var(--text) !important; }
+html[data-tema="claro"] .flatpickr-months .flatpickr-prev-month,
+html[data-tema="claro"] .flatpickr-months .flatpickr-next-month { fill: var(--text-dim) !important; }
+html[data-tema="claro"] .flatpickr-months .flatpickr-prev-month:hover,
+html[data-tema="claro"] .flatpickr-months .flatpickr-next-month:hover {
+  background: var(--surface2) !important; fill: var(--text) !important;
+}
+html[data-tema="claro"] span.flatpickr-weekday { color: var(--text-dim) !important; }
+html[data-tema="claro"] .flatpickr-day:hover { background: #f1f2f5 !important; color: var(--text) !important; }
+html[data-tema="claro"] .flatpickr-day.selected,
+html[data-tema="claro"] .flatpickr-day.startRange,
+html[data-tema="claro"] .flatpickr-day.endRange,
+html[data-tema="claro"] .flatpickr-day.today.selected,
+html[data-tema="claro"] .flatpickr-day.today.startRange,
+html[data-tema="claro"] .flatpickr-day.today.endRange { color: #1a1300 !important; }
+html[data-tema="claro"] .flatpickr-day.selected:hover,
+html[data-tema="claro"] .flatpickr-day.startRange:hover,
+html[data-tema="claro"] .flatpickr-day.endRange:hover { background: #c4920f !important; }
+html[data-tema="claro"] .flatpickr-day.inRange { background: #fbf3dc !important; color: var(--text) !important; }
+html[data-tema="claro"] .flatpickr-day.inRange:hover { background: #f6e6b8 !important; }
+html[data-tema="claro"] .flatpickr-day.today { color: var(--texto-dorado) !important; }
+html[data-tema="claro"] .flatpickr-day.prevMonthDay,
+html[data-tema="claro"] .flatpickr-day.nextMonthDay { color: var(--text-dim) !important; }
