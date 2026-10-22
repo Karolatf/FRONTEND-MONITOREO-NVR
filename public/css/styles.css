@@ -402,6 +402,85 @@ main {
 }
 .btn-limpiar:hover { border-color: var(--amber); color: var(--amber); }
 
+/* ── Historial: la tabla se desplaza por dentro ────────────────────────
+   Cada página trae 100 eventos; para que no ocupen toda la pantalla, la
+   tabla tiene una altura máxima y se desplaza por dentro, con el
+   encabezado (Fecha / Hora, Dispositivo...) fijo arriba. */
+.historial-section .tabla-wrapper {
+  max-height:    min(62vh, 560px);
+  overflow:      auto;
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+}
+.historial-section .historial-tabla {
+  margin-top:      0;
+  border-collapse: separate;
+  border-spacing:  0;
+}
+.historial-section .historial-tabla thead th {
+  position:   sticky;
+  top:        0;
+  z-index:    1;
+  background: var(--surface);
+  box-shadow: inset 0 -1px 0 var(--border);
+  border-bottom: none;
+}
+.historial-section .tabla-wrapper::-webkit-scrollbar       { width: 8px; height: 8px; }
+.historial-section .tabla-wrapper::-webkit-scrollbar-track { background: transparent; }
+.historial-section .tabla-wrapper::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+.historial-section .tabla-wrapper::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ── Paginación del historial (arriba y abajo de la tabla) ─────────────── */
+.paginacion {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             0.75rem;
+  flex-wrap:       wrap;
+  padding:         0.35rem 0;
+}
+.paginacion:empty { display: none; }
+#paginacion-abajo { margin-top: 0.5rem; }
+
+.paginacion-info {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+  flex-wrap:   wrap;
+  font-size:   0.72rem;
+  color:       var(--text-dim);
+}
+.paginacion-rango { color: var(--text); font-variant-numeric: tabular-nums; }
+.paginacion-aviso { display: inline-flex; align-items: center; gap: 0.3rem; }
+.paginacion-aviso svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+.paginacion-controles { display: flex; align-items: center; gap: 0.3rem; }
+
+.paginacion-btn {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           30px;
+  height:          30px;
+  background:      transparent;
+  border:          1px solid var(--border);
+  border-radius:   var(--radius);
+  color:           var(--text-dim);
+  cursor:          pointer;
+  transition:      border-color 0.2s, color 0.2s;
+}
+.paginacion-btn svg { width: 15px; height: 15px; }
+.paginacion-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
+.paginacion-btn:disabled { opacity: 0.35; cursor: default; }
+
+.paginacion-actual {
+  min-width:            7.5rem;
+  text-align:           center;
+  font-size:            0.72rem;
+  color:                var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Exportar (Excel/PDF) — botón con menú desplegable ─────────────────── */
 .exportar-wrapper { position: relative; }
 
@@ -663,6 +742,8 @@ span.flatpickr-weekday {
   .btn-limpiar { justify-content: center; }
   .exportar-wrapper { width: 100%; }
   .btn-exportar { width: 100%; justify-content: center; }
+  .paginacion { flex-direction: column; align-items: stretch; }
+  .paginacion-controles { justify-content: center; }
   .menu-exportar { left: 0; right: 0; }
 
   .tabla-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -2054,3 +2135,7 @@ html[data-tema="claro"] .flatpickr-day.inRange:hover { background: #f6e6b8 !impo
 html[data-tema="claro"] .flatpickr-day.today { color: var(--texto-dorado) !important; }
 html[data-tema="claro"] .flatpickr-day.prevMonthDay,
 html[data-tema="claro"] .flatpickr-day.nextMonthDay { color: var(--text-dim) !important; }
+
+/* Paginación del historial en tema claro: mismo criterio que los demás
+   botones (borde dorado y texto oscuro, el texto no se vuelve dorado) */
+html[data-tema="claro"] .paginacion-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--text); }

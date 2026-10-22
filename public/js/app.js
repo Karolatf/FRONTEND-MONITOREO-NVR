@@ -159,22 +159,99 @@ function construirParametrosFiltro() {
   return params;
 }
 
-async function cargarHistorial() {
+// ── Historial paginado ────────────────────────────────────────────────────────
+// El backend devuelve 100 eventos por página. Sin rango de fechas muestra solo
+// los últimos días (ver `ventanaDias`); con rango, todo lo guardado en él.
+let paginaHistorial       = 1;
+let totalPaginasHistorial = 1;
+let consultaHistorialId   = 0;   // para descartar respuestas viejas al escribir rápido
+
+// Sin argumentos vuelve a la página 1 (es lo que usan los filtros: un filtro
+// nuevo siempre empieza desde el principio). Para refrescar sin moverse de
+// página: cargarHistorial({ pagina: paginaHistorial }).
+// `alInicio`: subir el desplazamiento interno de la tabla al primer registro
+// (sí al cambiar de página o de filtro; no al refrescar en segundo plano, para
+// no mover a quien está leyendo).
+async function cargarHistorial({ pagina = 1, alInicio = true } = {}) {
   const params = construirParametrosFiltro();
+  params.set('pagina', pagina);
+
+  const idConsulta = ++consultaHistorialId;
 
   try {
     const res  = await authFetch(`/api/historial?${params}`);
     const data = await res.json();
 
+    // Si mientras tanto se hizo otra consulta (ej. se siguió escribiendo en el
+    // buscador), esta respuesta ya no sirve.
+    if (idConsulta !== consultaHistorialId) return;
+
+    paginaHistorial       = data.pagina       || 1;
+    totalPaginasHistorial = data.totalPaginas || 1;
+
+    params.delete('pagina');
     const hayFiltros = [...params.keys()].length > 0;
     const countEl    = document.getElementById('count-historial');
     countEl.textContent = t(hayFiltros ? 'dashboard.resultados' : 'dashboard.eventos', { count: data.total });
 
     renderFilas(data.eventos || []);
+    renderPaginacion(data);
     lucide.createIcons();
+
+    if (alInicio) {
+      const wrapper = document.querySelector('.historial-section .tabla-wrapper');
+      if (wrapper) wrapper.scrollTop = 0;
+    }
   } catch (err) {
     console.error('Error cargando historial:', err);
   }
+}
+
+// Refresca la página actual (usado al reconectar o al cambiar idioma/tema)
+function refrescarHistorial() {
+  cargarHistorial({ pagina: paginaHistorial, alInicio: false });
+}
+
+function irAPaginaHistorial(pagina) {
+  if (pagina < 1 || pagina > totalPaginasHistorial || pagina === paginaHistorial) return;
+  cargarHistorial({ pagina });
+}
+
+// Pinta los mismos controles arriba y abajo de la tabla
+function renderPaginacion({ total = 0, pagina = 1, porPagina = 100, totalPaginas = 1, ventanaDias = null } = {}) {
+  const fmt   = n => Number(n).toLocaleString(obtenerIdioma() === 'en' ? 'en-US' : 'es-CO');
+  const desde = total === 0 ? 0 : (pagina - 1) * porPagina + 1;
+  const hasta = Math.min(pagina * porPagina, total);
+
+  const aviso = ventanaDias
+    ? `<span class="paginacion-aviso"><i data-lucide="info"></i>${t('dashboard.avisoVentana', { count: ventanaDias })}</span>`
+    : '';
+
+  const boton = (destino, icono, etiqueta, deshabilitado, abajo) => `
+    <button class="paginacion-btn" type="button"
+      onclick="irAPaginaHistorial(${destino})"
+      title="${etiqueta}" aria-label="${etiqueta}" ${deshabilitado ? 'disabled' : ''}>
+      <i data-lucide="${icono}"></i>
+    </button>`;
+
+  const controles = abajo => `
+    <div class="paginacion-info">
+      <span class="paginacion-rango">${t('dashboard.mostrandoRango', { desde: fmt(desde), hasta: fmt(hasta), total: fmt(total) })}</span>
+      ${abajo ? '' : aviso}
+    </div>
+    <div class="paginacion-controles">
+      ${boton(1,              'chevrons-left',  t('dashboard.primeraPagina'),  pagina <= 1,            abajo)}
+      ${boton(pagina - 1,     'chevron-left',   t('dashboard.paginaAnterior'), pagina <= 1,            abajo)}
+      <span class="paginacion-actual">${t('dashboard.paginaDe', { pagina: fmt(pagina), total: fmt(totalPaginas) })}</span>
+      ${boton(pagina + 1,     'chevron-right',  t('dashboard.paginaSiguiente'), pagina >= totalPaginas, abajo)}
+      ${boton(totalPaginas,   'chevrons-right', t('dashboard.ultimaPagina'),   pagina >= totalPaginas, abajo)}
+    </div>`;
+
+  const arriba = document.getElementById('paginacion-arriba');
+  const abajo  = document.getElementById('paginacion-abajo');
+  if (arriba) arriba.innerHTML = controles(false);
+  // Abajo solo hace falta cuando hay más de una página
+  if (abajo)  abajo.innerHTML  = totalPaginas > 1 ? controles(true) : '';
 }
 
 // ── Formatear fechas para el backend ─────────────────────────────────────────
@@ -581,7 +658,9 @@ function encolarEvento(evento) {
   if (timerBufferEventos) clearTimeout(timerBufferEventos);
   timerBufferEventos = setTimeout(() => {
     mostrarAlertas(bufferEventosSocket);
-    cargarHistorial();
+    // Los eventos nuevos entran al inicio de la página 1. Si el usuario está
+    // revisando otra página, no se le mueven las filas mientras lee.
+    if (paginaHistorial === 1) cargarHistorial({ alInicio: false });
     bufferEventosSocket = [];
   }, VENTANA_AGRUPACION_MS);
 }
@@ -710,7 +789,7 @@ if (typeof registrarRepintado === 'function') {
   registrarRepintado(() => {
     if (Object.keys(estadoActual).length) renderEstado(estadoActual);
     actualizarAvisoMonitoreo();
-    cargarHistorial();
+    refrescarHistorial();
   });
 }
 
@@ -757,7 +836,7 @@ function conectarSocket() {
     // la red un momento): traer el estado y el historial reales de una vez,
     // en vez de confiar solo en lo próximo que llegue por socket.
     fetchStatus();
-    cargarHistorial();
+    refrescarHistorial();
   });
 
   // Estado completo de NVRs/cámaras: llega al conectar y cada vez que cambia algo
