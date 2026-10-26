@@ -74,6 +74,44 @@ function actualizarBotonHorario() {
   $('horario-guardar').disabled = iguales(leerHorario(), guardado.horario);
 }
 
+// ── Antes de guardar: revisar cambios ajenos y pedir confirmación ────────────
+// La configuración es UNA sola para todo el sistema (horario laboral, alertas
+// de Telegram al grupo). Por eso, antes de guardar:
+// 1. Se vuelve a consultar al servidor: si otra persona la cambió mientras esta
+//    página estaba abierta, se muestran sus valores y no se guarda nada, para
+//    no pisar su cambio sin verlo.
+// 2. Se pide confirmación, recordando que el cambio afecta a todo el equipo y
+//    quién hizo el último cambio.
+async function puedeGuardar(grupo, idError) {
+  const r = await llamar('GET', '');
+  if (r.ok && r.json[grupo]) {
+    const enServidor = r.json[grupo].actualizadoEn || null;
+    const enPantalla = datos[grupo].actualizadoEn  || null;
+    if (enServidor !== enPantalla) {
+      datos[grupo] = r.json[grupo];
+      datos.ahora  = r.json.ahora;
+      if (grupo === 'horario') { aplicarHorario(); pintarAhora(); } else { aplicarAlertas(); }
+      mostrarError(idError, t('configuracion.cambioAjeno', { usuario: r.json[grupo].actualizadoPor || '—' }));
+      return false;
+    }
+  }
+
+  const g = datos[grupo];
+  const ultimo = g.actualizadoPor && g.actualizadoEn
+    ? t('configuracion.confirmarUltimo', {
+        usuario: g.actualizadoPor,
+        fecha:   new Date(g.actualizadoEn).toLocaleString(obtenerIdioma() === 'en' ? 'en-US' : 'es-CO')
+      })
+    : t('configuracion.confirmarSinCambios');
+
+  return await confirmarAccion({
+    titulo:         t(grupo === 'horario' ? 'configuracion.confirmarTituloHorario' : 'configuracion.confirmarTituloAlertas'),
+    mensaje:        `${t('configuracion.confirmarMensaje')} ${ultimo}`,
+    textoConfirmar: t('configuracion.guardar'),
+    iconoConfirmar: 'save'
+  });
+}
+
 chips().forEach(chip => chip.addEventListener('click', () => {
   chip.setAttribute('aria-pressed', chip.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
   ocultarError('horario-error'); ocultarAviso('horario-aviso');
@@ -102,6 +140,7 @@ $('form-horario').addEventListener('submit', async e => {
   if (h.horaInicio >= h.horaFin)    return mostrarError('horario-error', t('configuracion.errOrden'));
 
   $('horario-guardar').disabled = true;
+  if (!(await puedeGuardar('horario', 'horario-error'))) { actualizarBotonHorario(); return; }
   const r = await llamar('PUT', '/horario', h);
   if (!r.ok) { actualizarBotonHorario(); return mostrarError('horario-error', r.error); }
 
@@ -174,6 +213,7 @@ $('form-alertas').addEventListener('submit', async e => {
   }
 
   $('alertas-guardar').disabled = true;
+  if (!(await puedeGuardar('alertas', 'alertas-error'))) { actualizarBotonAlertas(); return; }
   const r = await llamar('PUT', '/alertas', a);
   if (!r.ok) { actualizarBotonAlertas(); return mostrarError('alertas-error', r.error); }
 
