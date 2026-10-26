@@ -128,6 +128,10 @@ header p  { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
   transition:    all 0.2s;
 }
 #btn-actualizar:hover { border-color: var(--amber); color: var(--amber); }
+/* Mientras se verifica: ícono girando, sin poder oprimir de nuevo */
+#btn-actualizar.verificando { cursor: default; border-color: var(--amber); color: var(--text); }
+#btn-actualizar.verificando svg { animation: girar 0.9s linear infinite; color: var(--amber); }
+#btn-actualizar:disabled:hover { color: var(--text); }
 
 .usuario-badge {
   display:        flex;

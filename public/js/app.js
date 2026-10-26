@@ -69,6 +69,9 @@ async function fetchStatus() {
     const data = await res.json();
 
     if (data.monitoreo) actualizarAvisoMonitoreo(data.monitoreo);
+    // Si al cargar la página ya había una verificación en curso (la pidió otro
+    // usuario), el botón la muestra también aquí.
+    if (data.verificacion) mostrarBotonVerificando(!!data.verificacion.enCurso);
 
     if (data.inicializando) {
       mostrarInicializando();
@@ -86,6 +89,74 @@ async function fetchStatus() {
   } catch (err) {
     console.error('Error al consultar la API:', err);
     actualizarTimestamp(t('dashboard.sinConexionServidor'));
+  }
+}
+
+// ── Botón "Actualizar": verificación inmediata ────────────────────────────────
+// Pide al servidor un chequeo YA, sin esperar el siguiente ciclo. El servidor
+// responde enseguida y avisa a todos los navegadores (WebSocket 'verificacion')
+// cuándo empieza y cuándo termina, así el botón gira en todas las pantallas
+// mientras se revisan los equipos. Las tarjetas se actualizan solas con el
+// evento 'estado' de siempre.
+let verificacionPedidaAqui = false;  // para mostrar el aviso de "listo" solo a quien la pidió
+let temporizadorVerificacion = null; // red de seguridad por si se pierde el aviso de fin
+
+function mostrarBotonVerificando(activo) {
+  const btn = document.getElementById('btn-actualizar');
+  if (!btn) return;
+  const texto = btn.querySelector('[data-i18n]');
+  btn.classList.toggle('verificando', activo);
+  btn.disabled = activo;
+  if (texto) {
+    const clave = activo ? 'header.verificando' : 'header.actualizar';
+    texto.setAttribute('data-i18n', clave);
+    texto.textContent = t(clave);
+  }
+
+  clearTimeout(temporizadorVerificacion);
+  if (activo) {
+    // Un chequeo normal tarda 20-25 s; si en 2 minutos no llegó el aviso de
+    // fin (ej. se reinició el servidor), se libera el botón igual.
+    temporizadorVerificacion = setTimeout(() => terminarVerificacion(false), 120000);
+  }
+}
+
+function terminarVerificacion(completada = true) {
+  mostrarBotonVerificando(false);
+  if (completada) actualizarTimestamp();
+  // Aviso de confirmación solo a quien la pidió, y respetando el interruptor
+  // "Notificaciones en pantalla" de Mi Perfil
+  if (verificacionPedidaAqui && completada && notificacionesActivas()) {
+    notyf.success(t('dashboard.verificacionCompleta'));
+  }
+  verificacionPedidaAqui = false;
+}
+
+async function verificarAhora() {
+  try {
+    const res  = await authFetch('/api/verificar', { method: 'POST' });
+    const data = await res.json();
+
+    switch (data.estado) {
+      case 'iniciado':
+      case 'en_curso':
+        verificacionPedidaAqui = true;
+        mostrarBotonVerificando(true);
+        break;
+      case 'reciente':
+        // Se acaba de verificar: no se repite, solo se trae lo último
+        if (notificacionesActivas()) notyf.success(t('dashboard.verificacionReciente', { count: data.segundos }));
+        fetchStatus();
+        break;
+      case 'desactivado':
+        notyf.error(t('dashboard.verificacionDesactivada'));
+        break;
+      default:
+        fetchStatus();
+    }
+  } catch (err) {
+    console.error('Error al pedir la verificación:', err);
+    notyf.error(t('dashboard.errorVerificar'));
   }
 }
 
@@ -847,6 +918,12 @@ function conectarSocket() {
 
   // Situación del motor de monitoreo (iniciando, activo, sin conectividad,
   // desactivado): llega al conectar y cada vez que cambia.
+  // Verificación inmediata: empieza / termina (la pida quien la pida)
+  socket.on('verificacion', v => {
+    if (v.enCurso) mostrarBotonVerificando(true);
+    else           terminarVerificacion(true);
+  });
+
   socket.on('monitoreo', monitoreo => {
     actualizarAvisoMonitoreo(monitoreo);
   });
