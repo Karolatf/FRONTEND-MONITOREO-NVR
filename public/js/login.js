@@ -88,6 +88,7 @@ form.addEventListener('submit', async e => {
     // cada 5 minutos (auth-guard.js) con un `iat` nuevo cada vez — esta
     // marca es la única que se mantiene fija desde el login real.
     sessionStorage.setItem('nvr_login_ts', Date.now().toString());
+    aplicarPreferenciasDeLaCuenta(data);
     window.location.replace('index.html');
 
   } catch (err) {
@@ -260,3 +261,22 @@ document.getElementById('form-restablecer').addEventListener('submit', async e =
 });
 
 lucide.createIcons();
+
+// ── Preferencias de la cuenta (tema, idioma, notificaciones) ──────────────────
+// Se guardan en la cuenta de cada persona (no en el equipo). Al iniciar sesión
+// se copian al navegador ANTES de entrar al dashboard, para que abra ya con la
+// configuración de quien inició sesión y no con la del último que usó el
+// equipo. Si la persona nunca cambió nada, se usan los valores de fábrica.
+// Si el servidor todavía no tiene la tabla de preferencias
+// (preferenciasDisponibles = false), no se toca nada: funciona como antes.
+function aplicarPreferenciasDeLaCuenta(data) {
+  if (!data.preferenciasDisponibles) return;
+  const p = data.preferencias || { tema: 'oscuro', idioma: 'es', notificaciones: true };
+  try {
+    localStorage.setItem('nvr_tema',           p.tema === 'claro' ? 'claro' : 'oscuro');
+    localStorage.setItem('nvr_idioma',         p.idioma === 'en' ? 'en' : 'es');
+    localStorage.setItem('nvr_notificaciones', p.notificaciones === false ? 'desactivadas' : 'activadas');
+  } catch (err) {
+    console.warn('No se pudieron aplicar las preferencias de la cuenta:', err);
+  }
+}

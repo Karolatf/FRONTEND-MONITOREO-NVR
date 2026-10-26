@@ -1,7 +1,6 @@
 // ── Preferencias funcionales (Notificaciones en pantalla) ────────────────────
-// Mismo patrón que js/tema.js: se guarda en localStorage (por equipo, no por
-// sesión) para que cualquier página pueda leerla sin depender de que "Mi
-// Perfil" esté abierto. Por defecto está ACTIVA — el modelo es "opt-out":
+// Mismo patrón que js/tema.js: la copia local vive en localStorage para que
+// cualquier página pueda leerla sin depender de que "Mi Perfil" esté abierto. Por defecto está ACTIVA — el modelo es "opt-out":
 // quien no ha tocado nada sigue viendo las alertas exactamente como antes de
 // que existiera este ajuste.
 //
@@ -14,9 +13,9 @@
 // los avisos de Telegram: esa información de seguridad siempre se mantiene
 // actualizada, sin ninguna preferencia que la pueda apagar.
 //
-// Ojo: localStorage es POR NAVEGADOR Y POR DIRECCIÓN. Si se apaga entrando por
-// http://localhost:3000, no se apaga en http://172.30.29.170:3000 ni en otro
-// equipo (por ejemplo, el de la TV): ahí hay que apagarlo por separado.
+// La preferencia se guarda en la CUENTA de cada usuario (ver js/auth-guard.js):
+// sigue a la persona en cualquier equipo. localStorage es solo la copia local
+// que lee el dashboard; se actualiza al iniciar sesión y al cargar cada página.
 function notificacionesActivas() {
   return localStorage.getItem('nvr_notificaciones') !== 'desactivadas';
 }

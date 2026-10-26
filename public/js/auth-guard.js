@@ -79,6 +79,51 @@ function cerrarSesion() {
   }
 })();
 
+// ── Preferencias de la cuenta (tema, idioma, notificaciones) ──────────────────
+// Se guardan en la cuenta de cada usuario (tabla preferencias_usuario). El
+// navegador conserva una copia (localStorage) solo para pintar la página sin
+// parpadeo; al cargar cada página se compara con la cuenta, por si la persona
+// las cambió desde otro equipo (ej. el celular).
+async function sincronizarPreferenciasDeLaCuenta() {
+  try {
+    const res = await authFetch('/api/perfil/preferencias');
+    if (!res.ok) return;
+    const { disponible, preferencias } = await res.json();
+    if (!disponible) return; // el servidor aún no tiene la tabla: se queda lo del navegador
+
+    const p = preferencias || { tema: 'oscuro', idioma: 'es', notificaciones: true };
+
+    if (typeof establecerTema === 'function' && typeof obtenerTema === 'function' && obtenerTema() !== p.tema) {
+      establecerTema(p.tema);
+    }
+    localStorage.setItem('nvr_notificaciones', p.notificaciones === false ? 'desactivadas' : 'activadas');
+    if (typeof establecerIdioma === 'function' && typeof obtenerIdioma === 'function' && obtenerIdioma() !== p.idioma) {
+      establecerIdioma(p.idioma);
+    }
+    // Avisar a la página (ej. Mi Perfil repinta sus controles)
+    document.dispatchEvent(new CustomEvent('preferencias-sincronizadas'));
+  } catch (err) {
+    console.warn('No se pudieron sincronizar las preferencias:', err);
+  }
+}
+
+// Guarda en la cuenta uno o varios campos: { tema?, idioma?, notificaciones? }.
+// Devuelve true si quedó guardado (o si el servidor no tiene la tabla, en cuyo
+// caso la preferencia queda solo en este navegador, como antes).
+async function guardarPreferenciaDeLaCuenta(cambios) {
+  try {
+    const res = await authFetch('/api/perfil/preferencias', {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(cambios)
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('No se pudo guardar la preferencia en la cuenta:', err);
+    return false;
+  }
+}
+
 // ── fetch() con el header Authorization ya incluido ───────────────────────────
 // Si el backend responde 401 (token inválido, expirado, o el servidor se
 // reinició con una clave nueva), cierra la sesión y manda de vuelta al login.
@@ -138,3 +183,6 @@ setInterval(async () => {
     // Sin conexión momentánea: no pasa nada, se reintenta en el próximo ciclo
   }
 }, REFRESH_INTERVALO_MS);
+
+// Al cargar la página: traer las preferencias de la cuenta (no bloquea nada)
+sincronizarPreferenciasDeLaCuenta();

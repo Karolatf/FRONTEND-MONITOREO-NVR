@@ -113,6 +113,16 @@ document.getElementById('form-perfil').addEventListener('submit', async e => {
   }
 });
 
+// ── Preferencias de Interfaz: se guardan en la cuenta ─────────────────────────
+// Cada cambio se aplica al instante en esta pantalla y además se guarda en la
+// cuenta del usuario (guardarPreferenciaDeLaCuenta, en js/auth-guard.js), para
+// que lo vea igual en cualquier equipo y no lo herede otra persona que use
+// este mismo PC.
+async function guardarEnLaCuenta(cambios) {
+  const ok = await guardarPreferenciaDeLaCuenta(cambios);
+  if (!ok) notyf.error(t('perfil.errorGuardarPreferencia'));
+}
+
 // ── Preferencias de Interfaz — selector de tema (oscuro / claro) ────────────────
 // establecerTema()/obtenerTema() viven en js/tema.js (compartido por todas
 // las páginas, para que la preferencia se aplique sin importar por dónde
@@ -129,6 +139,7 @@ function inicializarSelectorTema() {
     boton.addEventListener('click', () => {
       establecerTema(boton.dataset.valor);
       pintarSegmentadoTema();
+      guardarEnLaCuenta({ tema: boton.dataset.valor });
     });
   });
 }
@@ -138,7 +149,10 @@ function inicializarSelectorTema() {
 function inicializarSelectorIdioma() {
   const select = document.getElementById('select-idioma');
   select.value = obtenerIdioma();
-  select.addEventListener('change', () => establecerIdioma(select.value));
+  select.addEventListener('change', () => {
+    establecerIdioma(select.value);
+    guardarEnLaCuenta({ idioma: select.value });
+  });
 }
 
 // ── Preferencias de Interfaz — interruptor de notificaciones ─────────────────
@@ -150,6 +164,16 @@ function pintarSwitch(boton, activo) {
   boton.setAttribute('aria-checked', activo ? 'true' : 'false');
 }
 
+// Si al cargar la página llegan de la cuenta preferencias distintas a las del
+// navegador (las cambió desde otro equipo), repintar los controles.
+document.addEventListener('preferencias-sincronizadas', () => {
+  pintarSegmentadoTema();
+  const select = document.getElementById('select-idioma');
+  if (select) select.value = obtenerIdioma();
+  const btn = document.getElementById('switch-notificaciones');
+  if (btn) pintarSwitch(btn, notificacionesActivas());
+});
+
 function inicializarInterruptores() {
   const btnNotificaciones = document.getElementById('switch-notificaciones');
   pintarSwitch(btnNotificaciones, notificacionesActivas());
@@ -158,6 +182,7 @@ function inicializarInterruptores() {
     const nuevoValor = !btnNotificaciones.classList.contains('activo');
     establecerNotificaciones(nuevoValor);
     pintarSwitch(btnNotificaciones, nuevoValor);
+    guardarEnLaCuenta({ notificaciones: nuevoValor });
   });
 }
 

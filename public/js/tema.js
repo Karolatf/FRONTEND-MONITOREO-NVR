@@ -4,9 +4,10 @@
 // nada: así la preferencia guardada se aplica de inmediato y no hay parpadeo
 // (un instante en oscuro que salta a claro, o viceversa).
 //
-// La preferencia se guarda en localStorage (no en sessionStorage, a
-// diferencia del token): es una preferencia de la persona en ESE equipo,
-// tiene sentido que sobreviva a cerrar la pestaña o cerrar sesión.
+// La preferencia se guarda en la CUENTA de cada usuario (ver js/auth-guard.js
+// y js/login.js). Aquí se lee la copia que el navegador guarda en
+// localStorage, solo para aplicarla antes de pintar y evitar el parpadeo; en
+// la pantalla de login se ve la del último usuario que entró en este equipo.
 (function aplicarTemaGuardado() {
   const TEMA_KEY = 'nvr_tema';
   const tema = localStorage.getItem(TEMA_KEY) === 'claro' ? 'claro' : 'oscuro';
