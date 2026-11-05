@@ -52,6 +52,8 @@
     </div>
     <div class="menu-links">
       <a href="index.html" class="menu-link"><i data-lucide="layout-dashboard"></i> <span data-i18n="menu.dashboard">Dashboard</span></a>
+      <a href="access-points.html" class="menu-link"><i data-lucide="wifi"></i> <span data-i18n="menu.accessPoints">Access Points</span></a>
+      <a href="equipos-red.html" class="menu-link"><i data-lucide="network"></i> <span data-i18n="menu.equiposRed">Equipos de red</span></a>
       <a href="graficas.html" id="menu-link-graficas" class="menu-link" hidden><i data-lucide="chart-column"></i> <span data-i18n="menu.graficas">Gráficas e Informes</span></a>
       <a href="usuarios.html" id="menu-link-usuarios" class="menu-link" hidden><i data-lucide="users"></i> <span data-i18n="menu.usuarios">Gestión de Usuarios</span></a>
       <a href="dispositivos.html" id="menu-link-dispositivos" class="menu-link" hidden><i data-lucide="server-cog"></i> <span data-i18n="menu.dispositivos">Gestionar Dispositivos</span></a>
@@ -77,7 +79,7 @@
         </div>
         <div class="disp-acciones" id="acciones-aps" hidden>
           <button type="button" class="btn-secundario" id="btn-pisos"><i data-lucide="layers"></i> <span data-i18n="dispositivos.administrarPisos">Administrar pisos</span></button>
-          <button type="button" class="btn-primario" id="btn-nuevo-ap"><i data-lucide="plus"></i> <span data-i18n="dispositivos.agregarAp">Agregar Access Point</span></button>
+          <button type="button" class="btn-primario" id="btn-nuevo-ap"><i data-lucide="plus"></i> <span data-i18n="dispositivos.agregarAp">Agregar equipo</span></button>
         </div>
       </div>
 
@@ -89,7 +91,7 @@
           <i data-lucide="server"></i> <span data-i18n="dispositivos.tabNvrs">NVRs</span> <span class="tab-contador" id="contador-nvrs">—</span>
         </button>
         <button type="button" class="tab" role="tab" aria-selected="false" data-pestana="aps">
-          <i data-lucide="wifi"></i> <span data-i18n="dispositivos.tabAps">Access Points</span> <span class="tab-contador" id="contador-aps">—</span>
+          <i data-lucide="wifi"></i> <span data-i18n="dispositivos.tabAps">Access Points y equipos de red</span> <span class="tab-contador" id="contador-aps">—</span>
         </button>
       </div>
 
@@ -169,12 +171,16 @@
 
       <!-- ══ Pestaña: Access Points ═════════════════════════════════════════ -->
       <section class="disp-seccion" id="seccion-aps" hidden>
-        <div class="disp-nota">
-          <i data-lucide="info"></i>
-          <span data-i18n="dispositivos.notaAps">El monitoreo de Access Points se activa en una etapa posterior: por ahora solo se registran.</span>
-        </div>
         <div class="filtros-bar">
           <input type="text" id="filtro-aps-texto" class="filtro-input" data-i18n-placeholder="dispositivos.buscarPlaceholder" placeholder="Buscar por nombre o IP..." autocomplete="off">
+          <div class="filtro-item-grupo">
+            <label class="filtro-label" for="filtro-aps-tipo" data-i18n="dispositivos.thTipoEquipo">Tipo</label>
+            <select id="filtro-aps-tipo" class="filtro-select">
+              <option value="" data-i18n="dispositivos.todosTipos">Todos</option>
+              <option value="access_point" data-i18n="dispositivos.tipoAp">Access Point</option>
+              <option value="equipo_red" data-i18n="dispositivos.tipoEr">Equipo de red / Proveedor</option>
+            </select>
+          </div>
           <div class="filtro-item-grupo">
             <label class="filtro-label" for="filtro-aps-piso" data-i18n="dispositivos.thPiso">Piso</label>
             <select id="filtro-aps-piso" class="filtro-select"></select>
@@ -195,13 +201,15 @@
               <tr>
                 <th data-i18n="dispositivos.thNombre">Nombre</th>
                 <th data-i18n="dispositivos.thIp">IP</th>
+                <th data-i18n="dispositivos.thTipoEquipo">Tipo</th>
+                <th data-i18n="dispositivos.thProveedor">Proveedor</th>
                 <th data-i18n="dispositivos.thPiso">Piso</th>
                 <th data-i18n="dispositivos.thEstado">Monitoreo</th>
                 <th></th>
               </tr>
             </thead>
             <tbody id="cuerpo-aps">
-              <tr><td colspan="5" class="empty-msg" data-i18n="dispositivos.cargando">Cargando dispositivos...</td></tr>
+              <tr><td colspan="7" class="empty-msg" data-i18n="dispositivos.cargando">Cargando dispositivos...</td></tr>
             </tbody>
           </table>
         </div>
@@ -321,7 +329,17 @@
       <form id="form-ap" autocomplete="off" novalidate>
         <input type="hidden" id="ap-id">
         <div class="login-field">
-          <label for="ap-piso" data-i18n="dispositivos.labelPiso">Piso</label>
+          <label for="ap-categoria" data-i18n="dispositivos.labelTipoEquipo">Tipo de equipo</label>
+          <div class="campo-select-wrap">
+            <select id="ap-categoria">
+              <option value="access_point" data-i18n="dispositivos.tipoAp">Access Point</option>
+              <option value="equipo_red" data-i18n="dispositivos.tipoEr">Equipo de red / Proveedor</option>
+            </select>
+            <i data-lucide="chevron-down" class="campo-select-flecha"></i>
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="ap-piso" data-i18n="dispositivos.labelPisoUbicacion">Piso o ubicación</label>
           <div class="campo-select-wrap">
             <select id="ap-piso"></select>
             <i data-lucide="chevron-down" class="campo-select-flecha"></i>
@@ -334,6 +352,10 @@
         <div class="login-field">
           <label for="ap-ip" data-i18n="dispositivos.labelIp">Dirección IP</label>
           <input type="text" id="ap-ip" maxlength="15" inputmode="decimal" placeholder="172.30.170.10">
+        </div>
+        <div class="login-field">
+          <label for="ap-proveedor" data-i18n="dispositivos.labelProveedor">Proveedor (opcional)</label>
+          <input type="text" id="ap-proveedor" maxlength="60" data-i18n-placeholder="dispositivos.placeholderProveedor" placeholder="Ej.: Tigo, TP-Link, Claro">
         </div>
         <div class="disp-switch-fila">
           <div>

@@ -213,20 +213,23 @@ function pintarNvrs() {
 }
 
 function pintarAps() {
-  const f = { texto: $('filtro-aps-texto').value.trim(), piso: $('filtro-aps-piso').value, estado: $('filtro-aps-estado').value };
+  const f = { texto: $('filtro-aps-texto').value.trim(), piso: $('filtro-aps-piso').value, estado: $('filtro-aps-estado').value, tipo: $('filtro-aps-tipo').value };
   const todos = listarAps();
   const lista = todos.filter(a =>
     coincideTexto(a, f.texto) && (!f.piso || String(a.piso.id) === f.piso) && coincideEstado(a, f.estado)
+    && (!f.tipo || a.categoria === f.tipo)
   );
 
   const cuerpo = $('cuerpo-aps');
-  if (todos.length === 0) { cuerpo.innerHTML = mensajeVacio(5, t('dispositivos.sinAps'));        return iconos(); }
-  if (lista.length === 0) { cuerpo.innerHTML = mensajeVacio(5, t('dispositivos.sinResultados')); return iconos(); }
+  if (todos.length === 0) { cuerpo.innerHTML = mensajeVacio(7, t('dispositivos.sinAps'));        return iconos(); }
+  if (lista.length === 0) { cuerpo.innerHTML = mensajeVacio(7, t('dispositivos.sinResultados')); return iconos(); }
 
   cuerpo.innerHTML = lista.map(a => `
     <tr class="${a.activo ? '' : 'fila-pausa'}" data-id="${a.id}">
       <td>${escaparHTML(a.nombre)}</td>
       <td class="ip-mono">${escaparHTML(a.ip)}</td>
+      <td>${escaparHTML(t(a.categoria === 'equipo_red' ? 'dispositivos.tipoEr' : 'dispositivos.tipoAp'))}</td>
+      <td>${escaparHTML(a.proveedor || '—')}</td>
       <td>${escaparHTML(a.piso.nombre)}</td>
       <td>${badgeEstado(a.activo)}</td>
       <td>${botonesAccion(a.activo)}</td>
@@ -237,7 +240,7 @@ function pintarAps() {
 function mostrarErrorEnTablas(mensaje) {
   $('cuerpo-camaras').innerHTML = mensajeVacio(6, escaparHTML(mensaje));
   $('cuerpo-nvrs').innerHTML    = mensajeVacio(6, escaparHTML(mensaje));
-  $('cuerpo-aps').innerHTML     = mensajeVacio(5, escaparHTML(mensaje));
+  $('cuerpo-aps').innerHTML     = mensajeVacio(7, escaparHTML(mensaje));
 }
 
 function pintarContadores() {
@@ -337,6 +340,7 @@ $('filtro-nvrs-estado').addEventListener('change',   pintarNvrs);
 $('filtro-aps-texto').addEventListener('input',      pintarApsConRetraso);
 $('filtro-aps-piso').addEventListener('change',      pintarAps);
 $('filtro-aps-estado').addEventListener('change',    pintarAps);
+$('filtro-aps-tipo').addEventListener('change',      pintarAps);
 
 document.querySelectorAll('[data-limpiar]').forEach(boton => boton.addEventListener('click', () => {
   const p = boton.dataset.limpiar;
@@ -344,6 +348,7 @@ document.querySelectorAll('[data-limpiar]').forEach(boton => boton.addEventListe
   $(`filtro-${p}-estado`).value = '';
   const segundo = { camaras: 'filtro-camaras-nvr', nvrs: 'filtro-nvrs-zona', aps: 'filtro-aps-piso' }[p];
   $(segundo).value = '';
+  if (p === 'aps') $('filtro-aps-tipo').value = '';
   ({ camaras: pintarCamaras, nvrs: pintarNvrs, aps: pintarAps })[p]();
 }));
 
@@ -622,6 +627,8 @@ function abrirModalAp(ap = null) {
   $('ap-nombre').value = ap ? ap.nombre : '';
   $('ap-ip').value     = ap ? ap.ip : '';
   $('ap-piso').value   = ap ? String(ap.piso.id) : $('filtro-aps-piso').value;
+  $('ap-categoria').value = ap ? (ap.categoria || 'access_point') : ($('filtro-aps-tipo').value || 'access_point');
+  $('ap-proveedor').value = ap ? (ap.proveedor || '') : '';
   fijarSwitch('ap-activo', ap ? ap.activo : true);
   $('ap-modal-titulo').textContent = ap ? t('dispositivos.editarAp') : t('dispositivos.crearAp');
   abrirModal('modal-ap', 'ap-nombre');
@@ -642,7 +649,10 @@ $('form-ap').addEventListener('submit', async e => {
   if (!nombre) return mostrarError('ap-error', t('dispositivos.errNombre'), 'ap-nombre');
   if (!REGEX_IP.test(ip)) return mostrarError('ap-error', t('dispositivos.errIp'), 'ap-ip');
 
-  const cuerpo = { piso_id: pisoId, nombre, ip, activo: switchActivo('ap-activo') };
+  const cuerpo = {
+    piso_id: pisoId, nombre, ip, activo: switchActivo('ap-activo'),
+    categoria: $('ap-categoria').value, proveedor: $('ap-proveedor').value.trim()
+  };
   const r = await conBotonOcupado('ap-guardar', () =>
     id ? llamar('PUT', `/access-points/${id}`, cuerpo) : llamar('POST', '/access-points', cuerpo));
 

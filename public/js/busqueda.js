@@ -91,7 +91,7 @@
       escapar(original.slice(pos + buscado.length));
   }
 
-  const ICONO  = { nvr: 'server', camara: 'cctv', access_point: 'wifi' };
+  const ICONO  = { nvr: 'server', camara: 'cctv', access_point: 'wifi', equipo_red: 'network' };
   const ESTADO = {
     normal:         { clase: 'ok',      clave: 'busqueda.estadoEnLinea' },
     degradado:      { clase: 'aviso',   clave: 'busqueda.estadoDegradado' },
@@ -104,6 +104,7 @@
   function contexto(r) {
     if (r.tipo === 'nvr')    return `${t('busqueda.tipoNvr')} · ${r.zonaNombre}`;
     if (r.tipo === 'camara') return `${t('busqueda.tipoCamara')} · ${r.nvrNombre} · ${r.zonaNombre}`;
+    if (r.tipo === 'equipo_red') return `${t('busqueda.tipoEr')} · ${r.piso}`;
     return `${t('busqueda.tipoAp')} · ${r.piso}`;
   }
 
@@ -212,8 +213,10 @@
       const extra = tienePermiso('gestionar_dispositivos') ? ` ${t('busqueda.pausaGestionar')}` : '';
       return mostrarMensajeDebajo(t('busqueda.pausaNoDashboard', { nombre: r.nombre }) + extra);
     }
-    if (r.tipo === 'access_point') {
-      return mostrarMensajeDebajo(t('busqueda.apNoDashboard'));
+    // Access Points y Equipos de red: se abren en su propia página
+    if (r.tipo === 'access_point' || r.tipo === 'equipo_red') {
+      location.href = r.tipo === 'access_point' ? 'access-points.html' : 'equipos-red.html';
+      return;
     }
 
     const destino = { tipo: r.tipo, id: r.tipo === 'nvr' ? r.id : r.nvrId, camaraId: r.tipo === 'camara' ? r.id : null };

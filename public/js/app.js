@@ -167,7 +167,7 @@ async function exportarHistorial(formato) {
   params.set('formato', formato);
 
   const btn = document.getElementById('btn-exportar');
-  const textoOriginal = btn.innerHTML;
+  if (btn.disabled) return; // ya hay una exportación en curso
   btn.disabled = true;
   btn.innerHTML = `<i data-lucide="loader" class="icon-btn login-spin"></i> ${t('dashboard.generando')}`;
   lucide.createIcons();
@@ -190,8 +190,11 @@ async function exportarHistorial(formato) {
     console.error('Error al exportar:', err);
     notyf.error(t('dashboard.errorExportar'));
   } finally {
+    // Se vuelve a armar el botón completo (no se copia lo que tenía antes): así
+    // nunca se queda pegado en "Generando..." aunque algo lo cambie mientras tanto.
     btn.disabled = false;
-    btn.innerHTML = textoOriginal;
+    btn.innerHTML = `<i data-lucide="download" class="icon-btn"></i> <span data-i18n="dashboard.exportar">${t('dashboard.exportar')}</span>
+      <i data-lucide="chevron-down" style="width:13px;height:13px;margin-left:2px"></i>`;
     lucide.createIcons();
     cerrarMenuExportar();
   }
@@ -208,11 +211,15 @@ document.addEventListener('click', e => {
   if (wrapper && !wrapper.contains(e.target)) cerrarMenuExportar();
 });
 
+const TIPOS_DASHBOARD = 'nvr,camara';
+
 // ── Construir los parámetros de filtro actuales (reutilizado por historial y exportar) ─
 function construirParametrosFiltro() {
   const ip              = document.getElementById('filtro-ip').value.trim();
   const tipo            = document.getElementById('filtro-estado').value;
-  const tipoDispositivo = document.getElementById('filtro-tipo').value;
+  // El dashboard de NVRs muestra solo NVRs y cámaras: los Access Points y los
+  // Equipos de red tienen su propio historial en su página.
+  const tipoDispositivo = document.getElementById('filtro-tipo').value || TIPOS_DASHBOARD;
   const hora            = document.getElementById('filtro-hora').value;
 
   const selectedDates = rangoPicker ? rangoPicker.selectedDates : [];
@@ -261,6 +268,7 @@ async function cargarHistorial({ pagina = 1, alInicio = true } = {}) {
     totalPaginasHistorial = data.totalPaginas || 1;
 
     params.delete('pagina');
+    if (params.get('tipoDispositivo') === TIPOS_DASHBOARD) params.delete('tipoDispositivo'); // no cuenta como filtro
     const hayFiltros = [...params.keys()].length > 0;
     const countEl    = document.getElementById('count-historial');
     countEl.textContent = t(hayFiltros ? 'dashboard.resultados' : 'dashboard.eventos', { count: data.total });
@@ -815,6 +823,15 @@ function mostrarResumenAlertas(eventos) {
 }
 
 // ── Filas del historial ───────────────────────────────────────────────────────
+// Etiqueta del tipo de dispositivo en el historial. Los Access Points y los
+// Equipos de red muestran en la columna NVR su piso o ubicación.
+function badgeTipoDispositivo(tipo) {
+  if (tipo === 'nvr')          return `<span class="badge badge-nvr">${t('badge.nvr')}</span>`;
+  if (tipo === 'access_point') return `<span class="badge badge-red">${t('badge.accessPoint')}</span>`;
+  if (tipo === 'equipo_red')   return `<span class="badge badge-red">${t('badge.equipoRed')}</span>`;
+  return `<span class="badge badge-camara">${t('badge.camara')}</span>`;
+}
+
 function renderFilas(eventos) {
   const tbody = document.getElementById('historial-body');
   if (!eventos.length) {
@@ -829,10 +846,8 @@ function renderFilas(eventos) {
         <td>${fecha}</td>
         <td>${ev.nombre}</td>
         <td style="font-family:monospace;font-size:0.72rem">${ev.ip}</td>
-        <td style="color:var(--text-dim)">${ev.tipo_dispositivo === 'camara' ? (ev.nvr_nombre || '—') : '—'}</td>
-        <td>${ev.tipo_dispositivo === 'nvr'
-          ? `<span class="badge badge-nvr">${t('badge.nvr')}</span>`
-          : `<span class="badge badge-camara">${t('badge.camara')}</span>`}</td>
+        <td style="color:var(--text-dim)">${ev.tipo_dispositivo === 'camara' ? (ev.nvr_nombre || '—') : (ev.piso || '—')}</td>
+        <td>${badgeTipoDispositivo(ev.tipo_dispositivo)}</td>
         <td>${esCaida
           ? `<span class="badge badge-caida">${t('badge.caida')}</span>`
           : `<span class="badge badge-recuperacion">${t('badge.recuperado')}</span>`}</td>
