@@ -5,8 +5,10 @@
 // El token se guarda en sessionStorage (no localStorage): sessionStorage se
 // borra automáticamente cuando se cierra la pestaña o la ventana, así que
 // cerrar el navegador ya obliga a iniciar sesión de nuevo la próxima vez.
-// Además, el servidor genera una clave de firma nueva cada vez que arranca,
-// así que reiniciar el proceso (o Git Bash) invalida todas las sesiones.
+// Si el servidor tiene JWT_SECRET configurado en el .env (como el PC de
+// producción), las sesiones siguen abiertas aunque el servidor se reinicie.
+// Sin JWT_SECRET usa una clave temporal y cada reinicio cierra las sesiones
+// (ver BACKEND/doc/05 y 08).
 //
 // ── Política de inactividad por rol ───────────────────────────────────────────
 // El cierre automático por inactividad (15 min sin mouse/teclado) tiene
@@ -125,8 +127,8 @@ async function guardarPreferenciaDeLaCuenta(cambios) {
 }
 
 // ── fetch() con el header Authorization ya incluido ───────────────────────────
-// Si el backend responde 401 (token inválido, expirado, o el servidor se
-// reinició con una clave nueva), cierra la sesión y manda de vuelta al login.
+// Si el backend responde 401 (token inválido o expirado, o la clave de firma
+// cambió), cierra la sesión y manda de vuelta al login.
 async function authFetch(url, opciones = {}) {
   const token = obtenerToken();
   const headers = { ...(opciones.headers || {}), Authorization: `Bearer ${token}` };
