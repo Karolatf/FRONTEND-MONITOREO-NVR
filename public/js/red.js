@@ -138,8 +138,10 @@ function actualizarBanner(caidos) {
       <strong></strong>
       <span></span>
     </div>`;
-  banner.querySelector('strong').textContent = t(CATEGORIA === 'equipo_red' ? 'red.incidenteTituloEr' : 'red.incidenteTituloAp', { count: caidos.length });
-  banner.querySelector('span').textContent   = t('red.incidenteDetalle', { nombres });
+  // Selectores dentro de .incidente-texto: el primer <span> del banner es el
+  // punto rojo que parpadea, y el texto no debe ir ahí.
+  banner.querySelector('.incidente-texto strong').textContent = t(CATEGORIA === 'equipo_red' ? 'red.incidenteTituloEr' : 'red.incidenteTituloAp', { count: caidos.length });
+  banner.querySelector('.incidente-texto span').textContent   = t('red.incidenteDetalle', { nombres });
   lucide.createIcons();
 }
 
